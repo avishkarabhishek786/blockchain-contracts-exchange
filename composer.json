@@ -1,0 +1,7 @@
+{
+  "require": {
+    "facebook/graph-sdk": "^5.6",
+    "slim/slim": "^3.0",
+    "nesbot/carbon": "~1.21"
+  }
+}
