@@ -19,7 +19,15 @@ if (isset($_POST['subject']) && trim($_POST['subject'])=='placeOrder') {
         $qty = (float) trim($_POST['qty']);
         $price = (float) trim($_POST['price']);
         $buy_sell = trim($_POST['bs_rad']);
-        $is_mkt = (bool) trim($_POST['is_mkt']);
+        $is_mkt = trim($_POST['is_mkt']);
+
+        if ($is_mkt == 'false') {
+            $is_mkt = false;
+        } elseif ($is_mkt=='true') {
+            $is_mkt = true;
+        } else {
+            return;
+        }
 
         $orderStatusId = 2; // 0 -> cancelled; 1 -> complete; 2 -> pending
 
@@ -41,7 +49,8 @@ if (isset($_POST['subject']) && trim($_POST['subject'])=='placeOrder') {
             echo json_encode($std);
             return false;
         }
-        if (!$is_mkt) {
+
+        if ($is_mkt==false) {
             if($price == '' || $price < 1) {
                 $std->error = true;
                 $std->msg = "Please provide a valid price. Price cannot be less than $1.";

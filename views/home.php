@@ -1,45 +1,29 @@
-<main role="main" class="container">
-    <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded box-shadow">
-        <img class="mr-3" src="https://getbootstrap.com/assets/brand/bootstrap-outline.svg" alt="" width="48" height="48">
-        <div class="lh-100">
-            <h6 class="mb-0 text-white lh-100">Ranchi Mall</h6>
-            <small>Small Ideas. Big Dreams</small>
-        </div>
-        <div class="d-flex">
-            <select class="form-control selbc" name="sel-bc-1" id="sel-bc-1">
-                <option value=""> Select first coin..</option>
-                <option value="REBC">Real Estate</option>
-                <option value="IBC">Incorporation</option>
-                <option value="FLOBC">Flo</option>
-            </select>
-
-            <select class="form-control selbc" name="sel-bc-2" id="sel-bc-2">
-                <option value="">Select second coin..</option>
-                <option value="RMT">RMT</option>
-                <option value="REBC">Real Estate</option>
-                <option value="IBC">Incorporation</option>
-                <option value="FLOBC">Flo</option>
-            </select>
-        </div>
-    </div>
-
-    <div class="my-3 p-3 bg-white rounded box-shadow">
-            <div class="form-group row">
-                <label for="ex-price" class="col-sm-2 col-form-label">Enter Price</label>
-                <div class="col-sm-10">
-                    <input type="number" class="form-control" name="ex-price" id="ex-price"/>
+<div class="container-fluid" style="margin:30px 0 30px 0">
+    <div class="row">
+        <div class="col-xs-12 col-lg-3">
+            <div class="row lays">
+                <div class="col-6"><h5 class="text-justify"><span id="bc-one"></span>/<span id="bc-two"></span></h5></div>
+                <div class="col-3">
+                    <h5 class="text-justify" id="bc-two-pr"></h5>
+                </div>
+                <div class="col-3">
+                    <h5 class="text-justify text-success">22.3%</h5>
                 </div>
             </div>
-            <div class="form-group row">
-                <label for="ex-qty" class="col-sm-2 col-form-label">Enter Quantity</label>
-                <div class="col-sm-10">
-                    <input type="number" class="form-control" name="ex-qty" id="ex-qty"/>
-                </div>
-            </div>
-            <fieldset class="form-group">
-                <div class="row">
-                    <legend class="col-form-label col-sm-2 pt-0">Choose buy or sell</legend>
-                    <div class="col-sm-10">
+            <div class="row lays">
+                <div class="col">
+                    <h5>Order Book</h5>
+
+                    <div class="form-group">
+                        <label for="ex-price" class="col-form-label">Enter Price</label>
+                        <input type="text" class="form-control" name="ex-price" id="ex-price"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="ex-qty" class="col-form-label">Enter Quantity</label>
+                        <input type="text" class="form-control" name="ex-qty" id="ex-qty"/>
+                    </div>
+                    <fieldset class="form-group">
+                        <legend class="col-form-label pt-0">Choose buy or sell</legend>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="gridRadios" id="ex-rad-buy" value="ex-buy">
                             <label class="form-check-label" for="ex-rad-buy">
@@ -52,54 +36,106 @@
                                 Sell
                             </label>
                         </div>
+                    </fieldset>
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" type="checkbox" id="is_mkt"> Buy instantly at market rate?
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" id="ex-sub" name="ex-sub">Submit</button>
                     </div>
                 </div>
-            </fieldset>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="is_mkt">
-                <label class="form-check-label" for="is_mkt">Buy instantly at market rate?</label>
             </div>
-            <div class="form-group row">
-                <div class="col-sm-10">
-                    <button type="submit" class="btn btn-primary" id="ex-sub" name="ex-sub">Submit</button>
-                </div>
-            </div>
-    </div>
-
-    <div class="my-3 p-3 bg-white rounded box-shadow">
-        <div class="row">
-            <div class="col">
-                <div class="table-responsive">
-                    <h6>Buy list</h6>
-                    <table class="table-borderless table-sm">
+            <?php if ($user_logged_in) { ?>
+            <div class="row lays">
+                <div class="col">
+                    <h5>Wallet</h5>
+                    <table class="table">
                         <thead>
                         <tr>
-                            <th>Buyer</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
+                            <th>BC</th>
+                            <th>BAL.</th>
                         </tr>
                         </thead>
-                        <tbody id="bd-buy"></tbody>
+                        <tbody id="usr-bc-bal"></tbody>
                     </table>
                 </div>
             </div>
-
-            <div class="col">
-                <div class="table-responsive">
-                    <h6>Sell list</h6>
-                    <table class="table-borderless table-sm">
-                        <thead>
-                        <tr>
-                            <th>Buyer</th>
-                            <th>Price</th>
-                            <th>Quantity</th>
-                        </tr>
-                        </thead>
-                        <tbody id="bd-sell"></tbody>
-                    </table>
-                </div>
-            </div>
+            <?php } ?>
 
         </div>
+        <div class="col-xs-12 col-lg-9">
+
+        <!--Buy Sell div-->
+        <div class="row lays">
+            <?php include_once 'buy_sell_box.php'; ?>
+        </div>
+        <!--End Buy Sell Div-->
+
+            <div id="accordion">
+                <div class="card lays">
+                    <div class="card-header" id="headingOne">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Recent Transactions
+                            </button>
+                            <span><a href="Recent_Transactions" target="_blank">View All</a></span>
+                        </h5>
+                    </div>
+
+                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                        <div class="card-body">
+                            <?php include_once 'tx.php'; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php if ($user_logged_in) { ?>
+                <div class="card lays">
+                    <div class="card-header" id="headingThree">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Order List
+                            </button>
+                            <span><a href="My_Orders" target="_blank">View All</a></span>
+                        </h5>
+                    </div>
+                    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                        <div class="card-body">
+                            <?php include_once'myOrdersList.php'; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php } ?>
+                <div class="card lays">
+                    <div class="card-header" id="headingTwo">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Messages
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                        <div class="card-body">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-md-8 ">
+                    <div class="lays">
+                        <?php include_once 'traders_list.php'; ?>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-md-4">
+                    <div class="lays">
+                        <?php include_once "ltp.php";?>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</main>
+</div>
+

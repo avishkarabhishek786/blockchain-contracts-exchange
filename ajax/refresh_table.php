@@ -1,7 +1,7 @@
 <?php
 
 require_once '../includes/imp_files.php';
-
+//echo $_POST['bc2'];
 if (isset($_POST['task'], $_POST['bc1'], $_POST['bc2']) && trim($_POST['task'])=='refresh') {
 
     $bc1 = $_POST['bc1'];

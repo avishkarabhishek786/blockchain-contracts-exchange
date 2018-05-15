@@ -1015,7 +1015,7 @@ class Orders extends Users {
                                     }
 
 // Record the transaction
-                                    $this->record_transaction($buyer_id, $available->order_id, $available->price, $buy_commission = '0', $seller_id, $sell_order_id, $available->price, $sell_commission = '0', $trade_qty);
+                                    $this->record_transaction($buyer_id, $available->order_id, $available->price, $WantAssetTypeId, $seller_id, $sell_order_id, $available->price, $OfferAssetTypeId, $trade_qty);
 
 // update the quantity field for supply
                                     $this->update_quantity($top_table = TOP_BUYS_TABLE, $available->quantity, $available->order_id);
@@ -1243,6 +1243,170 @@ class Orders extends Users {
             if ($query->execute()) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    public function last_transaction_list($start=0, $limit = 10, $a_bc=null, $b_bc=null) {
+        if ($this->databaseConnection()) {
+
+            $list = array();
+            $st = "";
+            if (trim($a_bc)!==null && trim($b_bc == null)) {
+                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."'";
+            } elseif(trim($a_bc)==null && trim($b_bc)!==null) {
+                $st = "WHERE ".TX_TABLE.".b_bc = '".$b_bc."'";
+            } elseif(trim($a_bc)!==null && trim($b_bc)!==null) {
+                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."' AND ".TX_TABLE.".b_bc = '".$b_bc."'";
+            }
+
+            $query = $this->db_connection->query("
+                SELECT txid AS T_ID, a_buyer AS BUYER_ID, b_seller AS SELLER_ID, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=BUYER_ID) AS BUYER, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=SELLER_ID) AS SELLER, b_amount AS TRADE_PRICE, ".TX_TABLE.".insert_dt, ".TX_TABLE.".qty_traded AS TRADED_QTY
+                FROM ".TX_TABLE.", ".USERS_TABLE."
+                ".$st."
+                GROUP BY T_ID
+                ORDER BY T_ID DESC
+                LIMIT $start, $limit
+            ");
+
+            if ($query->rowCount() > 0) {
+                while ($ls = $query->fetchObject()) {
+                    $list[] = $ls;
+                }
+                return $list;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    public function UserBalanceList($bc1='RMT', $is_active=null) {
+        if ($this->databaseConnection()) {
+
+            $list = array();
+
+            $extraQuerry = "";
+
+            if ($is_active != null) {
+                $extraQuerry = "AND ".USERS_TABLE.".is_active = 0 OR ".USERS_TABLE.".is_active = 1";
+            } else {
+                $extraQuerry = "AND ".USERS_TABLE.".is_active = 1";
+            }
+
+            $query = $this->db_connection->prepare("
+                SELECT DISTINCT ".USERS_TABLE.".name, ".CREDITS_TABLE.".balance, ".CREDITS_TABLE.".bc
+                FROM ".USERS_TABLE.", ".CREDITS_TABLE."
+                WHERE ".CREDITS_TABLE.".bc = :bc1
+                AND ".USERS_TABLE.".id = ".CREDITS_TABLE.".uid
+                $extraQuerry
+                ORDER BY ".CREDITS_TABLE.".balance DESC
+            ");
+
+            $query->bindParam('bc1', $bc1);
+            $query->execute();
+
+            if ($query->rowCount() > 0) {
+                while ($ls = $query->fetchObject()) {
+                    $list[] = $ls;
+                }
+                return $list;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    public function UserOrdersList($user_id, $start=0, $limit=10) {
+        if ($this->databaseConnection()) {
+
+            $list = array();
+            $query = $this->db_connection->prepare("
+            SELECT *
+            FROM ".ORDERS_TABLE."
+            WHERE `uid`=:u_id
+            ORDER  BY insert_dt DESC
+            LIMIT $start, $limit
+            ");
+            $query->bindParam('u_id', $user_id);
+            if ($query->execute()) {
+                if ($query->rowCount() > 0) {
+                    while ($ls = $query->fetchObject()) {
+                        $list[] = $ls;
+                    }
+                    return $list;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /*public function sel_bc_stats($bc1, $bc2) {
+        if ($this->databaseConnection()) {
+            $query = $this->db_connection->prepare("
+                    SELECT a_bc, b_bc, b_amount
+                    FROM ".TX_TABLE."
+                    WHERE a_bc = :a
+                    AND b_bc = :b
+                    ORDER BY insert_dt DESC
+                    LIMIT 1
+            ");
+            $query->bindParam("a", $bc1);
+            $query->bindParam("b", $bc2);
+            $query->execute();
+            $data = null;
+            if ($query->rowCount()) {
+                $data = $query->fetchObject();
+            }
+            return$data;
+        }
+    }*/
+
+    public function tx_data($bc1=null, $bc2=null, $limit=null) {
+        if ($this->databaseConnection()) {
+            $st = '';
+            $st2 = '';
+            if ($bc1!=null && $bc2!=null) {
+                $st = 'WHERE a_bc = :a AND b_bc = :b GROUP BY b_bc ';
+            } else if ($bc1!=null && $bc2==null) {
+                $st = 'WHERE a_bc = :a GROUP BY a_bc ';
+            } else if ($bc1==null && $bc2!=null) {
+                $st = 'WHERE b_bc = :b GROUP BY b_bc ';
+            } else {
+                $st='';
+            }
+            if ($limit != null) {
+                $st2 = " LIMIT $limit";
+            }
+            $query = $this->db_connection->prepare("
+                    SELECT DISTINCT *
+                    FROM ".TX_TABLE."
+                    ".$st."
+                    ORDER BY insert_dt DESC
+                    $st2
+            ");
+            if ($bc1!=null && $bc2!=null) {
+                $query->bindParam("a", $bc1);
+                $query->bindParam("b", $bc2);
+            } else if ($bc1!=null && $bc2==null) {
+                $query->bindParam("a", $bc1);
+            } else if ($bc1==null && $bc2!=null) {
+                $query->bindParam("b", $bc2);
+            }
+
+            $query->execute();
+            $dat = null;
+            if ($query->rowCount()) {
+                if ($limit > 1 || $limit==null) {
+                    $dat = array();
+                    while ($data = $query->fetchObject()) {
+                        $dat[] = $data;
+                    }
+                } else {
+                    $dat = $query->fetchObject();
+                }
+            }
+            return $dat;
         }
         return false;
     }

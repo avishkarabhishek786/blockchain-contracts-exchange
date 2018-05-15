@@ -3,10 +3,23 @@ body {
     overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 
-body {
-    padding-top: 56px;
+.dropdown-menu {
+    left: 10px;
+    min-width: 7rem;
 }
-
+.sel-div {
+    display: flex;
+    width: auto;
+}
+.selbc {
+    margin-right: 5px;
+}
+.mg-2 {
+    margin: 2px 2px;
+}
+h5 > span {
+    font-size: 0.9rem;
+}
 @media (max-width: 767.98px) {
     .offcanvas-collapse {
         position: fixed;
@@ -78,3 +91,58 @@ body {
 .lh-100 { line-height: 1; }
 .lh-125 { line-height: 1.25; }
 .lh-150 { line-height: 1.5; }
+
+/*Extra small devices (portrait phones, less than 576px)*/
+@media (max-width: 576px) {
+    body {
+        //display: block;
+        padding-top: 56px;
+        font-size: 24px;
+        width: 100%;
+    }
+    .lays {
+        background-color: #c8cbcf;
+        margin: 0 0 5px 0;
+        line-height: 19px;
+        padding: 5px;
+    }
+}
+/*No media query since this is the default in Bootstrap*/
+
+/*Small devices (landscape phones, 576px and up)*/
+@media (min-width: 576px) {
+    body {
+        padding-top: 56px;
+        font-size: 18px; !important;
+    }
+    .lays {
+        background-color: #c8cbcf;
+        margin: 0 0 5px 0;
+        line-height: 19px;
+        padding: 5px;
+    }
+}
+
+/*Medium devices (tablets, 768px and up)*/
+@media (min-width: 768px) {
+    body {
+        padding-top: 56px;
+        font-size: 16px;
+    }
+    .lays {
+        background-color: #c8cbcf;
+        margin: 0 0 5px 0;
+        line-height: 19px;
+        padding: 5px;
+    }
+}
+
+/*Large devices (desktops, 992px and up)*/
+@media (min-width: 992px) {
+
+}
+
+/*Extra large devices (large desktops, 1200px and up)*/
+@media (min-width: 1200px) {
+
+}

@@ -2,13 +2,29 @@
  * Created by Abhishek Kumar Sinha on 5/1/2018.
  */
 $(document).ready(function() {
-    load_fresh_table_data();
+    var sel1 = $('#sel-bc-1').val();
+    var sel2 = $('#sel-bc-2').val();
+    //load_fresh_table_data(sel1, sel2);
     run_OrderMatchingAlgorithm();
+    tradeList();
+    MyOrders();
+    MyTransactions();
+    sel_bc_stats(sel1, sel2);
+    user_wallet();
+    current_prices("RMT");
 });
 
 $(document).on('click', '#is_mkt', function() {
     $('#ex-price').val('').toggle();
 });
+
+var my_date_format = function(input){
+    var d = new Date(Date.parse(input.replace(/-/g, "/")));
+    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var date = d.getDate() + " " + month[d.getMonth()] + ", " + d.getFullYear();
+    var time = d.toLocaleTimeString().toLowerCase().replace(/([\d]+:[\d]+):[\d]+(\s\w+)/g, "$1$2");
+    return (date + " " + time);
+};
 
 $(document).on('click', '#ex-sub', function() {
 
@@ -22,7 +38,8 @@ $(document).on('click', '#ex-sub', function() {
 
     btn.prop( "disabled", true );
     place_order(sel1, sel2, pr, qty, bs_rad, is_mkt, btn);
-
+    user_wallet();
+    current_prices(sel2);
 });
 
 function displayNotice(msg, _type) {
@@ -55,7 +72,6 @@ function place_order(sel1, sel2, pr, qty, bs_rad, is_mkt, btn) {
             console.log(xhr.responseText);
         },
         success: function(data) {
-            console.log(data);
             btn.prop( "disabled", false);
             var IS_JSON = true;
             try {
@@ -100,7 +116,13 @@ myTimeoutFunction();
 
 // Update tables a/c to change in select
 $(document).on('change', ".selbc", function() {
-    load_fresh_table_data();
+    var bc1 = $('#sel-bc-1').val();
+    var bc2 = $('#sel-bc-2').val();
+    load_fresh_table_data(bc1, bc2);
+    tradeList(bc1, bc2);
+    tradersList(bc2);
+    sel_bc_stats(bc1, bc2);
+    current_prices(bc2);
 });
 
 // function to check if JSON data is array or not
@@ -108,10 +130,7 @@ function isArray(what) {
     return Object.prototype.toString.call(what) === '[object Array]';
 }
 
-function load_fresh_table_data() {
-
-    var bc1 = $('#sel-bc-1').val();
-    var bc2 = $('#sel-bc-2').val();
+function load_fresh_table_data(bc1, bc2) {
 
     $.ajax({
         method:'post',
@@ -121,7 +140,7 @@ function load_fresh_table_data() {
             console.log(xhr.responseText);
         },
         success: function(data) {
-
+            console.log(data);
             if(data !== '') {
                 var d = jQuery.parseJSON(data);
                 console.log(d);
@@ -177,7 +196,7 @@ function run_OrderMatchingAlgorithm() {
         },
         success: function(data) {
 
-            load_fresh_table_data();
+            load_fresh_table_data(sel1, sel2);
 
             var IS_JSON = true;
             try {
@@ -197,6 +216,258 @@ function run_OrderMatchingAlgorithm() {
                                 type: 'success'
                             });
                         }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function tradeList(bc1, bc2) {
+
+    $.ajax({
+        method:'post',
+        url:'ajax/tradeList.php',
+        data: { task : 'loadTradeList',bc1:bc1, bc2:bc2},
+        error: function() {
+            console.log('error');
+        },
+        success: function(data) {
+
+        var IS_JSON = true;
+        try {
+            var d = jQuery.parseJSON(data);
+        }
+        catch(err) {
+            IS_JSON = false;
+        }
+
+        if(IS_JSON) {
+            console.log(d);
+            var v = '';
+            if(isArray(d.trade_list) && d.trade_list.length != 0) {
+                for (var k=0; k<= d.trade_list.length-1; k++) {
+                    v += '';
+                    v += '<tr>';
+                    v += '<td>'+d.trade_list[k].SELLER+'</td>';
+                    v += '<td>'+d.trade_list[k].BUYER+'</td>';
+                    v += '<td>$ '+d.trade_list[k].TRADE_PRICE+'</td>';
+                    v += '<td>'+d.trade_list[k].TRADED_QTY+'</td>';
+                    v += '<td>$ '+(d.trade_list[k].TRADED_QTY * d.trade_list[k].TRADE_PRICE).toFixed(5)+'</td>';
+                    v += '<td>'+my_date_format(d.trade_list[k].insert_dt)+'</td>';
+                    v += '</tr>';
+                }
+                $('#_ltp').text('$ '+d.trade_list[0].TRADE_PRICE);
+            } else {
+                v += '<p class="text-info">No transactions.</p>';
+            }
+            $('#trade-list').html(v);
+        }
+    }
+    });
+}
+
+/*Traders List*/
+function tradersList(bc2) {
+    $.ajax({
+        method:'post',
+        url:'ajax/tradersList.php',
+        data: { task : 'loadTradersList', bc2:bc2},
+        error: function(xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success: function(data) {
+
+            var IS_JSON = true;
+            try {
+                var d = jQuery.parseJSON(data);
+            }
+            catch(err) {
+                IS_JSON = false;
+            }
+
+            if(IS_JSON) {
+                var v = '';
+                if(isArray(d.traders_list) && d.traders_list.length != 0) {
+                    $('#bcn').text(d.traders_list[0].bc);
+                    for (var k=0; k<= d.traders_list.length-1; k++) {
+                        v += '';
+                        v += '<tr>';
+                        v += '<td>'+d.traders_list[k].name+'</td>';
+                        v += '<td>'+d.traders_list[k].balance+'</td>';
+                        v += '</tr>';
+                    }
+                }
+                $('#traders-list').html(v);
+            }
+        }
+    });
+}
+
+/*My Orders*/
+function MyOrders() {
+    $.ajax({
+        method:'post',
+        url:'ajax/myOrders.php',
+        data: { task : 'loadMyOrdersList'},
+        error:function(xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success:function(data) {
+            if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
+                $('#myOrdersTable').html(data);
+            }
+        }
+    });
+}
+/*My Transactions*/
+function MyTransactions() {
+    $.ajax({
+        method:'post',
+        url:'ajax/myTransactions.php',
+        data: { task : 'myTransactions'},
+        error:function(xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success: function(data) {
+
+            var IS_JSON = true;
+            try {
+                var d = jQuery.parseJSON(data);
+            }
+            catch(err) {
+                IS_JSON = false;
+            }
+
+            if(IS_JSON) {
+                var v = '';
+                if(isArray(d.trade_list) && d.trade_list.length != 0) {
+                    for (var k=0; k<= d.trade_list.length-1; k++) {
+                        v += '';
+                        v += '<tr>';
+                        v += '<td>'+d.trade_list[k].SELLER+'</td>';
+                        v += '<td>'+d.trade_list[k].BUYER+'</td>';
+                        v += '<td>$ '+d.trade_list[k].TRADE_PRICE+'</td>';
+                        v += '<td>'+d.trade_list[k].TRADED_QTY+'</td>';
+                        v += '<td>$ '+(d.trade_list[k].TRADED_QTY * d.trade_list[k].TRADE_PRICE).toFixed(5)+'</td>';
+                        v += '<td>'+my_date_format(d.trade_list[k].insert_dt)+'</td>';
+                        v += '</tr>';
+                    }
+                }
+                $('#my-transactions-list').html(v);
+            }
+        }
+    });
+}
+
+function sel_bc_stats(bc1, bc2) {
+    $('#bc-one').text(bc1);
+    $('#bc-two').text(bc2);
+    $.ajax({
+        method:'post',
+        url:'ajax/sel_bc_stats.php',
+        data: { task : 'sel_bc_stats', bc1:bc1, bc2:bc2},
+        error: function(xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success: function(data) {
+            $('#bc-two-pr').text('');
+            var IS_JSON = true;
+            try {
+                var d = jQuery.parseJSON(data);
+            }
+            catch(err) {
+                IS_JSON = false;
+            }
+
+            if(IS_JSON) {
+                if(d.data.length != 0) {
+                    $('#bc-one').text(d.data.a_bc);
+                    $('#bc-two').text(d.data.b_bc);
+                    $('#bc-two-pr').text(d.data.b_amount);
+                }
+            }
+        }
+    });
+}
+
+function user_wallet() {
+    $.ajax({
+        method: 'post',
+        async: true,
+        url: 'ajax/update_user_wallet.php',
+        data: {task: 'update_user_wallet'},
+        error: function (xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success: function (data) {
+
+            var IS_JSON = true;
+            try {
+                var d = jQuery.parseJSON(data);
+            }
+            catch (err) {
+                IS_JSON = false;
+            }
+
+            if (IS_JSON) {
+                if (d.error == false) {
+                    if (isArray(d.bc) && d.bc.length != 0) {
+                        var t = '';
+                        for (var k = 0; k <= d.bc.length - 1; k++) {
+                            t += '<tr>';
+                            t += '<td>'+ d.bc[k].bc+'</td>';
+                            t += '<td>'+ d.bc[k].balance+'</td>';
+                            t += '</tr>';
+                        }
+                        $('#usr-bc-bal').html(t);
+                    }
+                }
+            }
+        }
+    });
+}
+
+function current_prices(bc2) {
+    var ltpbc2 = $('#ltpbc2');
+    var bccp = $('#bccp');
+    bccp.text('No Data');
+    ltpbc2.val();
+    if(bc2 !="") {
+        ltpbc2.val('('+bc2+')');
+    }
+    $.ajax({
+        method: 'post',
+        async: true,
+        url: 'ajax/current_prices.php',
+        data: {task: 'current_prices', bc2:bc2},
+        error: function (xhr, status, error) {
+            console.log(xhr.responseText);
+        },
+        success: function (data) {
+            var IS_JSON = true;
+            try {
+                var d = jQuery.parseJSON(data);
+            }
+            catch (err) {
+                IS_JSON = false;
+            }
+
+            if (IS_JSON) {
+                if (d.error == false) {
+                    if (isArray(d.bc) && d.bc.length != 0) {
+                        var t = '';
+                        var w = '';
+                        for (var k = 0; k <= d.bc.length - 1; k++) {
+                            w = d.bc[k].b_bc;
+                            t += '<tr>';
+                            t += '<td>'+ d.bc[k].a_bc+'</td>';
+                            t += '<td>'+ d.bc[k].a_amount+'</td>';
+                            t += '<td><span class="text-success">22%</span></td>';
+                            t += '</tr>';
+                        }
+                        ltpbc2.html('('+w+')');
+                        bccp.html(t);
                     }
                 }
             }

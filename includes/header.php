@@ -34,6 +34,7 @@ if(checkLoginStatus()) {
     $action_class_market = 'market_submit_btn';
     $action_class_buy_sell = 'process';
 }
+
 ?>
 
 <!doctype html>
@@ -50,6 +51,24 @@ if(checkLoginStatus()) {
 
 <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Ranchi Mall Blockchain Contract</a>
+
+    <div class="sel-div float-right">
+        <select class="custom-select selbc" name="sel-bc-1" id="sel-bc-1">
+            <option value=""> Select BC1</option>
+            <option value="REBC">Real Estate</option>
+            <option value="IBC">Incorporation</option>
+            <option value="FLOBC">Flo</option>
+        </select>
+
+        <select class="custom-select selbc" name="sel-bc-2" id="sel-bc-2">
+            <option value="">Select BC2</option>
+            <option value="RMT">RMT</option>
+            <option value="REBC">Real Estate</option>
+            <option value="IBC">Incorporation</option>
+            <option value="FLOBC">Flo</option>
+        </select>
+    </div>
+
     <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
         <span class="navbar-toggler-icon"></span>
     </button>

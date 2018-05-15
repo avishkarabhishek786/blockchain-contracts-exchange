@@ -232,4 +232,47 @@ class Users {
         return false;
     }
 
+    public function displayUserTransaction($user_id, $start=0, $limit=10) {
+        if ($this->databaseConnection()) {
+            $transactions = array();
+
+            $query = $this->db_connection->prepare("
+                SELECT txid AS T_ID, a_buyer AS BUYER_ID, b_seller AS SELLER_ID, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=BUYER_ID) AS BUYER, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=SELLER_ID) AS SELLER, b_amount AS TRADE_PRICE, ".TX_TABLE.".insert_dt, ".TX_TABLE.".qty_traded AS TRADED_QTY
+                FROM ".TX_TABLE.", ".USERS_TABLE."
+                WHERE `a_buyer`= :u_id OR `b_seller`= :u_id
+                GROUP BY T_ID
+                ORDER BY T_ID DESC
+                LIMIT $start, $limit
+            ");
+            $query->bindParam('u_id', $user_id);
+            if ($query->execute()) {
+                $rowCount = $query->rowCount();
+                if ($rowCount > 0) {
+                    while ($tr = $query->fetchObject()) {
+                        $transactions[] = $tr;
+                    }
+                }
+            }
+            return $transactions;
+        }
+        return false;
+    }
+
+    public function user_bc_bal($user_id) {
+        if ($this->databaseConnection()) {
+            $query = $this->db_connection->prepare("SELECT * FROM `wallet` WHERE `uid`=:usr_id");
+            $query->bindParam('usr_id', $user_id);
+            $query->execute();
+            $bc_bal = array();
+            if ($query->rowCount()) {
+                while ($bc = $query->fetchObject()) {
+                    $bc_bal[] = $bc;
+                }
+            }
+            return $bc_bal;
+        }
+        return false;
+    }
+
+
 }
