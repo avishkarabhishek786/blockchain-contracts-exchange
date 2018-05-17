@@ -11,7 +11,8 @@ $(document).ready(function() {
     MyTransactions();
     sel_bc_stats(sel1, sel2);
     user_wallet();
-    current_prices("RMT");
+    current_prices();
+    load_messages();
 });
 
 $(document).on('click', '#is_mkt', function() {
@@ -109,10 +110,36 @@ function place_order(sel1, sel2, pr, qty, bs_rad, is_mkt, btn) {
 
 function myTimeoutFunction() {
     run_OrderMatchingAlgorithm();
+    check_new_orders();
     setTimeout(myTimeoutFunction, 20000);
 }
 
 myTimeoutFunction();
+
+function run_all() {
+    run_OrderMatchingAlgorithm();
+    tradeList();
+    tradersList();
+    MyOrders();
+    MyTransactions();
+    load_messages();
+}
+
+function check_new_orders() {
+    $.ajax({
+        method:'post',
+        url:'ajax/check_new_orders.php',
+        async: true,
+        error: function(xhr, status, error) {
+            console.log(xhr, status, error);
+        },
+        success: function(data) {
+            if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
+                run_all();
+            }
+        }
+    });
+}
 
 // Update tables a/c to change in select
 $(document).on('change', ".selbc", function() {
@@ -243,7 +270,6 @@ function tradeList(bc1, bc2) {
         }
 
         if(IS_JSON) {
-            console.log(d);
             var v = '';
             if(isArray(d.trade_list) && d.trade_list.length != 0) {
                 for (var k=0; k<= d.trade_list.length-1; k++) {
@@ -251,9 +277,9 @@ function tradeList(bc1, bc2) {
                     v += '<tr>';
                     v += '<td>'+d.trade_list[k].SELLER+'</td>';
                     v += '<td>'+d.trade_list[k].BUYER+'</td>';
-                    v += '<td>$ '+d.trade_list[k].TRADE_PRICE+'</td>';
+                    v += '<td>'+d.trade_list[k].TRADE_PRICE+'</td>';
                     v += '<td>'+d.trade_list[k].TRADED_QTY+'</td>';
-                    v += '<td>$ '+(d.trade_list[k].TRADED_QTY * d.trade_list[k].TRADE_PRICE).toFixed(5)+'</td>';
+                    v += '<td>'+(d.trade_list[k].TRADED_QTY * d.trade_list[k].TRADE_PRICE).toFixed(5)+'</td>';
                     v += '<td>'+my_date_format(d.trade_list[k].insert_dt)+'</td>';
                     v += '</tr>';
                 }
@@ -361,8 +387,10 @@ function MyTransactions() {
 }
 
 function sel_bc_stats(bc1, bc2) {
-    $('#bc-one').text(bc1);
-    $('#bc-two').text(bc2);
+    var bc_one = $('#bc-one');
+    var bc_two = $('#bc-two');
+    bc_one.text(bc1);
+    bc_two.text(bc2);
     $.ajax({
         method:'post',
         url:'ajax/sel_bc_stats.php',
@@ -381,9 +409,9 @@ function sel_bc_stats(bc1, bc2) {
             }
 
             if(IS_JSON) {
-                if(d.data.length != 0) {
-                    $('#bc-one').text(d.data.a_bc);
-                    $('#bc-two').text(d.data.b_bc);
+                if((d.data.length != 0) && (bc_one.val()!='') && (bc_two.val()!='')) {
+                    bc_one.text(d.data.a_bc);
+                    bc_two.text(d.data.b_bc);
                     $('#bc-two-pr').text(d.data.b_amount);
                 }
             }
@@ -474,3 +502,75 @@ function current_prices(bc2) {
         }
     });
 }
+
+/*Messages*/
+function load_messages() {
+    $.ajax({
+        method:'post',
+        url:'ajax/myMessages.php',
+        data: { task : 'loadMyMessagesList'},
+        error: function(xhr, status, error) {
+            console.log(error);
+        },
+        success: function(data) {
+            if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
+                var IS_JSON = true;
+                try {
+                    var d = jQuery.parseJSON(data);
+                }
+                catch(err) {
+                    IS_JSON = false;
+                }
+
+                if (IS_JSON) {
+                    var v = '0 message';
+                    if(isArray(d.msg) && d.msg.length != 0) {
+                        v = '';
+                        var si = 0;
+                        for (var k=0; k<= d.msg.length-1; k++) {
+                            si = k+1;
+                            v += '<tr>';
+                            v += '<td>'+si+'</td>';
+                            v += '<td>'+d.msg[k].order_id+'</td>';
+                            v += '<td>'+d.msg[k].messages+'</td>';
+                            v += '<td>'+my_date_format(d.msg[k].datetime)+'</td>';
+                            v += '</tr>';
+                        }
+                    }
+                    $('#user_msg').html(v);
+                }
+            }
+        }
+    });
+}
+
+/*Delete Orders*/
+$(document).on('click', '.del_order', function (e) {
+    e.preventDefault();
+    var id = $(this).attr("id");
+
+    $.ajax({
+        method:'post',
+        url:'ajax/delOrder.php',
+        data: { task : 'delOrder', id:id},
+        error: function(xhr, status, error) {
+            console.log(error);
+        },
+        success: function(data) {
+            if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
+                $.notify({
+                    title: "<strong>Order Deleted!:</strong> ",
+                    message: "You deleted the order successfully."
+                },{
+                    type: 'success'
+                });
+            } else {
+                displayNotice("The order could not be deleted. Try again later.", "failure");
+            }
+            run_OrderMatchingAlgorithm();
+            load_messages();
+            MyOrders();
+        }
+    });
+});
+

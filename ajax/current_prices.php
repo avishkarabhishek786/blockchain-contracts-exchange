@@ -1,8 +1,8 @@
 <?php
 require_once '../includes/imp_files.php';
 
-if (isset($_POST['task'], $_POST['bc2']) && trim($_POST['task']=='current_prices')) {
-    $bc2 = isset($_POST['bc2']) ? $_POST['bc2'] : RMT;
+if (isset($_POST['task']) && trim($_POST['task']=='current_prices')) {
+    $bc2 = isset($_POST['bc2']) ? $_POST['bc2'] : null;
 
     $std = new stdClass();
     $std->bc = array();

@@ -41,13 +41,14 @@ if(checkLoginStatus()) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title>Ranchi Mall Blockchain Contracts</title>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="<?=STYLE_DIR?>/bootstrap.min.css">
     <!-- Custom styles for this template -->
-    <link href="<?=STYLE_DIR?>/offcanvas.css" rel="stylesheet">
+    <link href="<?=STYLE_DIR?>/main.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body>
 
 <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Ranchi Mall Blockchain Contract</a>
@@ -81,14 +82,14 @@ if(checkLoginStatus()) {
             Investors
             <span class="badge badge-pill bg-light align-text-bottom">127</span>
         </a>
-        <a class="nav-link" href="#">Exchange</a>
+        <a class="nav-link" href="https://www.ranchimall.net/exchange">Buy RMT</a>
 
         <?php if($user_logged_in) { ?>
             <a class="nav-link" href="logout.php">Log Out</a>
         <?php } elseif(isset($loginUrl)) {?>
-            <a href="<?=$loginUrl?>" role="button" class="pull-right popup nav-link" name="fb_login">
-                <div class="btn btn--facebook ">
-                    Continue with Facebook
+            <a href="<?=$loginUrl?>" role="button" class="nav-link" name="fb_login">
+                <div class="btn--facebook ">
+                    Login with Facebook
                 </div>
             </a>
         <?php } ?>

@@ -3,7 +3,7 @@
         <table class="table table-striped" cellpadding="10" cellspacing="0" width="100%">
             <thead>
             <tr>
-                <th>Price ($)</th>
+                <th>Price</th>
                 <th>Quantity</th>
                 <th>Cancel Order</th>
                 <th>Item Sold</th>

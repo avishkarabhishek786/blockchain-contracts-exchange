@@ -111,13 +111,14 @@
                     <div class="card-header" id="headingTwo">
                         <h5 class="mb-0">
                             <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                Messages
+                                My Messages
                             </button>
+                            <span><a href="My_Messages" target="_blank">View All</a></span>
                         </h5>
                     </div>
                     <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
                         <div class="card-body">
-
+                            <?php include_once 'user_messages.php';?>
                         </div>
                     </div>
                 </div>

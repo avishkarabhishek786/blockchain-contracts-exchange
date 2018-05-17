@@ -1,6 +1,22 @@
 html,
 body {
     overflow-x: hidden; /* Prevent scroll on narrow devices */
+    color: #ffffff;
+    background-color: #343a40;
+    font-family: 'Montserrat', sans-serif;
+}
+a {
+    color: #f7f7f7;
+}
+input[type=text] {
+    //background: #FAFAFA;
+    border: 1px solid #F4F4F4;
+    border-radius: 3px;
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .dropdown-menu {
@@ -97,7 +113,7 @@ h5 > span {
     body {
         //display: block;
         padding-top: 56px;
-        font-size: 24px;
+        //font-size: 24px;
         width: 100%;
     }
     .lays {
@@ -113,13 +129,14 @@ h5 > span {
 @media (min-width: 576px) {
     body {
         padding-top: 56px;
-        font-size: 18px; !important;
+        //font-size: 18px; !important;
     }
     .lays {
         background-color: #c8cbcf;
         margin: 0 0 5px 0;
         line-height: 19px;
         padding: 5px;
+        font-size: small;
     }
 }
 
@@ -127,10 +144,11 @@ h5 > span {
 @media (min-width: 768px) {
     body {
         padding-top: 56px;
-        font-size: 16px;
+        //font-size: 16px;
     }
     .lays {
-        background-color: #c8cbcf;
+        /*#c8cbcf, rgba(255, 193, 7, 0.32), #ffc293*/
+        background-color: rgba(0, 0, 0, 0.24);
         margin: 0 0 5px 0;
         line-height: 19px;
         padding: 5px;
@@ -145,4 +163,30 @@ h5 > span {
 /*Extra large devices (large desktops, 1200px and up)*/
 @media (min-width: 1200px) {
 
+}
+
+/*Bootstrap*/
+.bg-dark {
+    /*background-color: #007bff!important;*/
+    background-color: #343a40!important;
+}
+
+.card-header {
+    background-color: #162029;
+    color: #ffffff;
+    font-weight: 600;
+    //font-size: large;
+}
+
+.btn-link {
+    color: #ffffff;
+}
+.btn-link:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+.btn-primary {
+    color: #fff;
+    background-color: #162029; !important;
+    border-color: #282c31; !important;
 }

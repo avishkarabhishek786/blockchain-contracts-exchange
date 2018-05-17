@@ -274,5 +274,29 @@ class Users {
         return false;
     }
 
+    public function list_messages_by_userId($user_id, $start=0, $limit=10) {
+        if ($this->databaseConnection()) {
+            $messages = array();
+
+            $query = $this->db_connection->prepare("
+                SELECT * FROM ".MSG_TABLE." WHERE `username_key`= :uk
+                ORDER BY datetime DESC
+                LIMIT $start, $limit
+             ");
+            $query->bindParam("uk", $user_id);
+            if ($query->execute()) {
+                $rowCount = $query->rowCount();
+                if ($rowCount > 0) {
+                    while ($tr = $query->fetchObject()) {
+                        $messages[] = $tr;
+                    }
+                }
+            }
+            return $messages;
+        }
+        return false;
+    }
+
+
 
 }

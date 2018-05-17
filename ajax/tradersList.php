@@ -18,7 +18,7 @@ if (isset($_POST['task'], $_POST['bc2']) && trim($_POST['task'])=='loadTradersLi
 
     if (isset($OrderClass)) {
 
-        $tradersList = $OrderClass->UserBalanceList($bc2);
+        $tradersList = $OrderClass->UserBalanceList($bc2, 1);
         if (is_array($tradersList) && !empty($tradersList)) {
             $std->traders_list = $tradersList;
             $std->error = false;

@@ -208,6 +208,23 @@ class Orders extends Users {
         return false;
     }
 
+    public function get_active_order_of_user($user_id, $bc, $top_table) {
+        if ($this->databaseConnection()) {
+            $query = $this->db_connection->prepare("
+                SELECT * FROM $top_table WHERE `uid`= :uid ORDER BY `insert_dt` DESC
+            ");
+            $query->bindParam('uid', $user_id);
+            $query->execute();
+
+            $arr = array();
+            while ($qr = $query->fetchObject()) {
+                $arr[] = $qr;
+            }
+            return $arr;
+        }
+        return false;
+    }
+
     public function OrderMatchingQuery($bc1, $bc2) {
 
         if ($this->databaseConnection()) {
@@ -1224,7 +1241,6 @@ class Orders extends Users {
 
     public function storeMessages($order_id=null, $user_id=null, $msg=null) {
         if($this->databaseConnection()) {
-            return;
             $now = $this->time_now();
             if ($user_id == false) {
                 return false;
@@ -1247,18 +1263,25 @@ class Orders extends Users {
         return false;
     }
 
-    public function last_transaction_list($start=0, $limit = 10, $a_bc=null, $b_bc=null) {
+    public function last_transaction_list($start=0, $limit = 10, $a_bc=null, $b_bc=null, $uid=null) {
         if ($this->databaseConnection()) {
 
             $list = array();
             $st = "";
-            if (trim($a_bc)!==null && trim($b_bc == null)) {
-                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."'";
-            } elseif(trim($a_bc)==null && trim($b_bc)!==null) {
-                $st = "WHERE ".TX_TABLE.".b_bc = '".$b_bc."'";
-            } elseif(trim($a_bc)!==null && trim($b_bc)!==null) {
-                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."' AND ".TX_TABLE.".b_bc = '".$b_bc."'";
+            $st2 = "";
+            if ((int)$uid!=0 || (int)$uid!=null) {
+                $st2 = " AND a_buyer = $uid OR b_seller=$uid ";
             }
+            if (trim($a_bc)!=null && trim($b_bc == null)) {
+                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."'";
+            } elseif(trim($a_bc)==null && trim($b_bc)!=null) {
+                $st = "WHERE ".TX_TABLE.".b_bc = '".$b_bc."'";
+            } elseif(trim($a_bc)!=null && trim($b_bc)!=null) {
+                $st = "WHERE ".TX_TABLE.".a_bc = '".$a_bc."' AND ".TX_TABLE.".b_bc = '".$b_bc."'";
+            } elseif (trim($a_bc)==null && trim($b_bc)==null && $uid!=null) {
+                $st2 = " WHERE a_buyer = $uid OR b_seller=$uid ";
+            }
+            $st.= $st2;
 
             $query = $this->db_connection->query("
                 SELECT txid AS T_ID, a_buyer AS BUYER_ID, b_seller AS SELLER_ID, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=BUYER_ID) AS BUYER, (SELECT ".USERS_TABLE.".name FROM ".USERS_TABLE." WHERE ".USERS_TABLE.".id=SELLER_ID) AS SELLER, b_amount AS TRADE_PRICE, ".TX_TABLE.".insert_dt, ".TX_TABLE.".qty_traded AS TRADED_QTY
@@ -1280,29 +1303,39 @@ class Orders extends Users {
         return false;
     }
 
-    public function UserBalanceList($bc1='RMT', $is_active=null) {
+    public function UserBalanceList($bc1='', $is_active=null) {
         if ($this->databaseConnection()) {
 
             $list = array();
 
             $extraQuerry = "";
+            $extraQuerry1 = "";
+            $extraQuerry2 = "";
 
             if ($is_active != null) {
-                $extraQuerry = "AND ".USERS_TABLE.".is_active = 0 OR ".USERS_TABLE.".is_active = 1";
+                $extraQuerry = "WHERE (".USERS_TABLE.".is_active = 0 OR ".USERS_TABLE.".is_active = 1) AND ".USERS_TABLE.".id = ".CREDITS_TABLE.".uid";
             } else {
-                $extraQuerry = "AND ".USERS_TABLE.".is_active = 1";
+                $extraQuerry = "WHERE ".USERS_TABLE.".is_active = 1 AND ".USERS_TABLE.".id = ".CREDITS_TABLE.".uid";
+            }
+
+            if (trim($bc1)!=null) {
+                $extraQuerry1 = "AND ".CREDITS_TABLE.".bc = :bc1";
+                $extraQuerry2 = "ORDER BY ".CREDITS_TABLE.".balance DESC";
+            } else {
+                $extraQuerry2 = "ORDER BY ".USERS_TABLE.".name ASC";
             }
 
             $query = $this->db_connection->prepare("
-                SELECT DISTINCT ".USERS_TABLE.".name, ".CREDITS_TABLE.".balance, ".CREDITS_TABLE.".bc
+                SELECT DISTINCT ".USERS_TABLE.".name, ".USERS_TABLE.".id AS UID, ".USERS_TABLE.".fb_id AS FACEBOOK_ID, ".CREDITS_TABLE.".balance, ".CREDITS_TABLE.".bc, ".USERS_TABLE.".is_active
                 FROM ".USERS_TABLE.", ".CREDITS_TABLE."
-                WHERE ".CREDITS_TABLE.".bc = :bc1
-                AND ".USERS_TABLE.".id = ".CREDITS_TABLE.".uid
                 $extraQuerry
-                ORDER BY ".CREDITS_TABLE.".balance DESC
+                $extraQuerry1
+                $extraQuerry2
             ");
 
-            $query->bindParam('bc1', $bc1);
+            if (trim($bc1)!=null) {
+                $query->bindParam('bc1', $bc1);
+            }
             $query->execute();
 
             if ($query->rowCount() > 0) {
@@ -1341,27 +1374,6 @@ class Orders extends Users {
         return false;
     }
 
-    /*public function sel_bc_stats($bc1, $bc2) {
-        if ($this->databaseConnection()) {
-            $query = $this->db_connection->prepare("
-                    SELECT a_bc, b_bc, b_amount
-                    FROM ".TX_TABLE."
-                    WHERE a_bc = :a
-                    AND b_bc = :b
-                    ORDER BY insert_dt DESC
-                    LIMIT 1
-            ");
-            $query->bindParam("a", $bc1);
-            $query->bindParam("b", $bc2);
-            $query->execute();
-            $data = null;
-            if ($query->rowCount()) {
-                $data = $query->fetchObject();
-            }
-            return$data;
-        }
-    }*/
-
     public function tx_data($bc1=null, $bc2=null, $limit=null) {
         if ($this->databaseConnection()) {
             $st = '';
@@ -1373,7 +1385,7 @@ class Orders extends Users {
             } else if ($bc1==null && $bc2!=null) {
                 $st = 'WHERE b_bc = :b GROUP BY b_bc ';
             } else {
-                $st='';
+                $st=' GROUP BY a_bc ';
             }
             if ($limit != null) {
                 $st2 = " LIMIT $limit";
@@ -1410,5 +1422,153 @@ class Orders extends Users {
         }
         return false;
     }
+
+    public function record_root_bal_update($uid, $bal_prev, $bal_now, $bal_type) {
+        if ($this->databaseConnection()) {
+            $now = $this->time_now();
+            $root = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+            $query = $this->db_connection->prepare("
+                INSERT INTO ".ADMIN_BAL_RECORDS."(`BalStatusHistoryId`, `user_id`, `bal_prev`, `bal_now`, `type`, `root_id`, `UpdateDate`)
+                VALUES ('', :uid, :prev, :now, :btype, :root, '$now')
+            ");
+            $query->bindParam("uid", $uid);
+            $query->bindParam("prev", $bal_prev);
+            $query->bindParam("now", $bal_now);
+            $query->bindParam("btype", $bal_type);
+            $query->bindParam("root", $root);
+
+            if ($query->execute()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function list_root_bal_changes() {
+        if ($this->databaseConnection()) {
+            $list_details = array();
+            $query = $this->db_connection->prepare("
+                SELECT ".ADMIN_BAL_RECORDS.".*, ".USERS_TABLE.".name, ".USERS_TABLE.".email
+                FROM ".ADMIN_BAL_RECORDS.", ".USERS_TABLE."
+                WHERE ".ADMIN_BAL_RECORDS.".user_id=".USERS_TABLE.".id
+                ORDER BY UpdateDate DESC
+                LIMIT 200
+            ");
+            $query->execute();
+
+            if ($query->rowCount() > 0) {
+                while ($list = $query->fetchObject()) {
+                    $list_details[] = $list;
+                }
+            }
+            return $list_details;
+        }
+        return false;
+    }
+
+    public function get_last_order_date($date=null) {
+        if ($this->databaseConnection()) {
+            $query = $this->db_connection->query("SELECT * FROM ".ORDERS_TABLE." WHERE `insert_dt`> '$date'");
+            if ($query->rowCount()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function delete_orders_of_user($user_id=null) {
+        if ($this->databaseConnection()) {
+            $order_ids = array();
+            $query = $this->db_connection->prepare("
+            SELECT order_id FROM ".TOP_BUYS_TABLE." WHERE `uid`=:uid
+            UNION
+            SELECT order_id FROM ".TOP_SELLS_TABLE." WHERE `uid`=:uid
+            ");
+            $query->bindParam('uid', $user_id);
+            $query->execute();
+            if ($query->rowCount() > 0) {
+                while ($rr = $query->fetchObject()) {
+                    $order_ids[] = $rr;
+                }
+                foreach ($order_ids as $oid) {
+                    $this->del_order($oid->orderId, $user_id);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function storeMessagesPublic($order_id=null, $user_id=null, $msg=null) {
+        if ($this->databaseConnection()) {
+            $this->storeMessages($order_id, $user_id, $msg);
+        }
+    }
+
+    public function total_recent_transactions()
+    {
+        if ($this->databaseConnection()) {
+            $total_orders = 0;
+
+            $query = $this->db_connection->prepare("
+                SELECT COUNT(*) AS TOTAL_ORDERS
+                FROM ".TX_TABLE."
+            ");
+            if ($query->execute()) {
+                $fetch = $query->fetchObject();
+                $total_orders = (int)$fetch->TOTAL_ORDERS;
+            }
+            return $total_orders;
+        }
+        return false;
+    }
+
+    function total_my_messages() {
+        if ($this->databaseConnection()) {
+            $my_total_messages = 0;
+            if (isset($_SESSION['user_id'])) {
+                $user_id = (int) $_SESSION['user_id'];
+            } else {
+                return $my_total_messages;
+            }
+            $query = $this->db_connection->prepare("
+                SELECT COUNT(*) AS MY_TOTAL_MESSAGES
+                FROM ".MSG_TABLE."
+                WHERE `username_key`=:u_id
+            ");
+            $query->bindParam('u_id', $user_id);
+            if ($query->execute()) {
+                $fetch = $query->fetchObject();
+                $my_total_messages = (int) $fetch->MY_TOTAL_MESSAGES;
+            }
+            return $my_total_messages;
+        }
+        return false;
+    }
+
+    public function total_my_orders()
+    {
+        if ($this->databaseConnection()) {
+            $my_total_orders = 0;
+            if (isset($_SESSION['user_id'])) {
+                $user_id = (int)$_SESSION['user_id'];
+            } else {
+                return $my_total_orders;
+            }
+            $query = $this->db_connection->prepare("
+                SELECT COUNT(*) AS MY_TOTAL_ORDERS
+                FROM ".ORDERS_TABLE."
+                WHERE `uid`=:u_id
+            ");
+            $query->bindParam('u_id', $user_id);
+            if ($query->execute()) {
+                $fetch = $query->fetchObject();
+                $my_total_orders = (int)$fetch->MY_TOTAL_ORDERS;
+            }
+            return $my_total_orders;
+        }
+        return false;
+    }
+
 
 }

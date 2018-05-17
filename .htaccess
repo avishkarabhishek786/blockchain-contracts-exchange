@@ -1,0 +1,21 @@
+Options +FollowSymLinks -Multiviews
+
+<IfModule mod_rewrite.c>
+
+    SetEnv HTTP_MOD_REWRITE On
+    RewriteEngine on
+    IndexIgnore *	
+    Options +MultiViews
+    
+    ErrorDocument 404   /pageNotFound.php
+    
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    RewriteRule ^My_Messages$ view_all_messages.php [NC,L]
+    RewriteRule ^My_Orders$ view_all_my_orders_list.php [NC,L]
+    RewriteRule ^My_Transactions$ view_all_my_transactions.php [NC,L]
+    RewriteRule ^Recent_Transactions$ view_all_recent_transactions.php [NC,L]
+    RewriteRule ^traders$ view_all_traders_list.php [NC,L]
+
+</IfModule>
