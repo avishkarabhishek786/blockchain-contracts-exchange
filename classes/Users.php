@@ -260,7 +260,7 @@ class Users {
 
     public function user_bc_bal($user_id) {
         if ($this->databaseConnection()) {
-            $query = $this->db_connection->prepare("SELECT * FROM `wallet` WHERE `uid`=:usr_id");
+            $query = $this->db_connection->prepare("SELECT * FROM ".CREDITS_TABLE." WHERE `uid`=:usr_id");
             $query->bindParam('usr_id', $user_id);
             $query->execute();
             $bc_bal = array();

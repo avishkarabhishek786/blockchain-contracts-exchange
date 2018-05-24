@@ -6,7 +6,8 @@
             <tr>
                 <th>BC</th>
                 <th>Price <span id="ltpbc2"></span></th>
-                <th>24h % shift</th>
+                <th>Price (RMT)</th>
+                <th>Price (USD)</th>
             </tr>
             </thead>
             <tbody id="bccp"></tbody>

@@ -25,6 +25,9 @@ defined("VIEWS_DIR") || define("VIEWS_DIR", "views");
 //CONFIG DIR
 defined("CONFIG_DIR") || define("CONFIG_DIR", "config");
 
+//CONFIG DIR
+defined("IMG_DIR") || define("IMG_DIR", "images");
+
 if(isset($_SESSION['user_name'])) {
 //USER DIR
     defined("USER_DIR") || define("USER_DIR", "user". DS .$_SESSION['user_name']. DS ."uploads". DS);

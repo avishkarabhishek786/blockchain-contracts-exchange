@@ -103,3 +103,26 @@ function validate_decimal_place($num=0, $decimal_allowed=2) {
     }
     return false;
 }
+
+function rmt_price_today() {
+    $rmt_price = null;
+
+    try {
+        $url = "https://www.ranchimall.net/exchange/api/market_price";
+
+        $json = file_get_contents($url);
+        $data = json_decode($json);
+
+        return $data;
+        /*$rate = $data[1]["rate"];
+        $usd_price = 1;
+        $bit_price = round($rate/$usd_price , 8);*/
+    } catch(Exception $e) {
+        $rmt_price = null;
+    }
+    return (float) $rmt_price;
+}
+
+function bc_to_usd($bc_rmt_price, $current_rmt_price_in_usd) {
+    return round(($bc_rmt_price * $current_rmt_price_in_usd), 2);
+}

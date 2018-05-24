@@ -51,7 +51,7 @@ if (isset($accessToken)) {
     }
     // getting basic info about user
     try {
-        $profile_request = $fb->get('/me?fields=name,first_name,last_name,email');
+        $profile_request = $fb->get('/me?fields=name,first_name,last_name,email,picture');
         $profile = $profile_request->getGraphNode()->asArray();
     } catch(Facebook\Exceptions\FacebookResponseException $e) {
         // When Graph returns an error
@@ -72,13 +72,14 @@ if (isset($accessToken)) {
     $first_name = isset($profile['first_name']) ? $profile['first_name'] : null;
     $last_name = isset($profile['last_name']) ? $profile['last_name'] : null;
     $email = isset($profile['email']) ? $profile['email'] : null;
-    //$gender = isset($profile['gender']) ? $profile['gender'] : null;
     $fb_id = isset($profile['id']) ? $profile['id'] : null;
+    $profile_pic = isset($profile['picture']['url']) ? $profile['picture']['url'] : IMG_DIR.'/avavtardefault50px.png';
 
     $_SESSION['first_name'] = $first_name;
     $_SESSION['full_name'] = $name;
     $_SESSION['email'] = $email;
     $_SESSION['fb_id'] = $fb_id;
+    $_SESSION['profile_pic'] = $profile_pic;
 
     // Now you can redirect to another page and use the access token from $_SESSION['facebook_access_token']
 

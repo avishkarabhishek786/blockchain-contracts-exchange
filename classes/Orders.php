@@ -158,20 +158,29 @@ class Orders extends Users {
         return false;
     }
 
-    public function get_top_buy_sell_list($top_table, $WantAssetTypeId, $OfferAssetTypeId, $asc_desc) {
+    public function get_top_buy_sell_list($top_table, $WantAssetTypeId=null, $OfferAssetTypeId=null, $asc_desc) {
 
         if ($this->databaseConnection()) {
 
             $top_list = array();
+            $st1 = "";
+            if (trim($WantAssetTypeId) != null) {
+                $st1 = " AND $top_table.bc1 = '".$WantAssetTypeId."' ";
+            }
+            $st2 = "";
+            if (trim($OfferAssetTypeId) != null) {
+                $st2 = " AND $top_table.bc2 = '".$OfferAssetTypeId."' ";
+            }
 
-            $query = $this->db_connection->query("SELECT $top_table.order_id, $top_table.uid, $top_table.quantity, $top_table.price, ".USERS_TABLE.".name
-                                    FROM $top_table, ".USERS_TABLE."
-                                    WHERE $top_table.uid = ".USERS_TABLE.".id
-                                    AND $top_table.bc1 = '".$WantAssetTypeId."'
-                                    AND $top_table.bc2 = '".$OfferAssetTypeId."'
-                                    ORDER BY price $asc_desc
-                                    LIMIT $this->max_top_bids
-                                    ");
+            $query = $this->db_connection->query("
+                SELECT $top_table.order_id, $top_table.uid, $top_table.quantity, $top_table.price, ".USERS_TABLE.".name, $top_table.bc1, $top_table.bc2
+                FROM $top_table, ".USERS_TABLE."
+                WHERE $top_table.uid = ".USERS_TABLE.".id
+                $st1
+                $st2
+                ORDER BY price $asc_desc
+                LIMIT $this->max_top_bids
+            ");
 
             if ($query) {
 
@@ -208,12 +217,22 @@ class Orders extends Users {
         return false;
     }
 
-    public function get_active_order_of_user($user_id, $bc, $top_table) {
+    public function get_active_buy_order_of_user($user_id, $bc=null, $top_table) {
         if ($this->databaseConnection()) {
+
+            $st = "";
+            if (trim($bc)!=null) {
+                $st = " AND bc2 = :bc ";
+            }
             $query = $this->db_connection->prepare("
-                SELECT * FROM $top_table WHERE `uid`= :uid ORDER BY `insert_dt` DESC
+                SELECT * FROM $top_table WHERE `uid`= :uid
+                 ".$st."
+                 ORDER BY `insert_dt` DESC
             ");
             $query->bindParam('uid', $user_id);
+            if (trim($bc)!=null) {
+                $query->bindParam('bc', $bc);
+            }
             $query->execute();
 
             $arr = array();
@@ -224,6 +243,33 @@ class Orders extends Users {
         }
         return false;
     }
+
+    public function get_active_sell_order_of_user($user_id, $bc=null, $top_table) {
+        if ($this->databaseConnection()) {
+            $st = "";
+            if (trim($bc)!=null) {
+                $st = " AND bc1 = :bc ";
+            }
+            $query = $this->db_connection->prepare("
+                SELECT * FROM $top_table WHERE `uid`= :uid
+                 ".$st."
+                 ORDER BY `insert_dt` DESC
+            ");
+            $query->bindParam('uid', $user_id);
+            if (trim($bc)!=null) {
+                $query->bindParam('bc', $bc);
+            }
+            $query->execute();
+
+            $arr = array();
+            while ($qr = $query->fetchObject()) {
+                $arr[] = $qr;
+            }
+            return $arr;
+        }
+        return false;
+    }
+
 
     public function OrderMatchingQuery($bc1, $bc2) {
 
@@ -1423,6 +1469,14 @@ class Orders extends Users {
         return false;
     }
 
+    public function get_bc1_to_bc2_eq($bc1, $bc2) {
+        $res = "";
+        if (trim($bc1) !="" && trim($bc2) !="") {
+            $res = $this->tx_data($bc1, $bc2, $limit=1);
+        }
+        return $res;
+    }
+
     public function record_root_bal_update($uid, $bal_prev, $bal_now, $bal_type) {
         if ($this->databaseConnection()) {
             $now = $this->time_now();
@@ -1566,6 +1620,111 @@ class Orders extends Users {
                 $my_total_orders = (int)$fetch->MY_TOTAL_ORDERS;
             }
             return $my_total_orders;
+        }
+        return false;
+    }
+
+    /*Blockchain Contract Queries*/
+
+    public function get_bc_list($bc_name = null, $tradable_bc1=null, $tradable_bc2=null) {
+        $bcl = [];
+        if ($this->databaseConnection()) {
+            $st = '';
+            $st2 = '';
+            if ($bc_name != null) {
+                $st2 = " AND bc_code=:b ";
+            }
+            if ($tradable_bc1!=null && $tradable_bc2!=null) {
+                $st = 'WHERE eligible_bc1 = 1 AND eligible_bc2 = 1  '.$st2;
+            } else if ($tradable_bc1!=null && $tradable_bc2==null) {
+                $st = 'WHERE eligible_bc1 = 1 '.$st2;
+            } else if ($tradable_bc1==null && $tradable_bc2!=null) {
+                $st = 'WHERE eligible_bc2 = 1  '.$st2;
+            } else {
+                if ($bc_name != null) {
+                    $st2 = " WHERE bc_code=:b ";
+                }
+            }
+
+            $query = $this->db_connection->prepare("SELECT * FROM ".BC_TABLE."
+                            $st $st2 ");
+
+            if ($bc_name != null) {
+                $query->bindParam('b', $bc_name);
+            }
+            $query->execute();
+
+            if ($query->rowCount()) {
+                while ($l = $query->fetchObject()) {
+                    $bcl[] = $l;
+                }
+            }
+        }
+        return $bcl;
+    }
+
+    public function is_bc_valid($bc=null, $val_bc1=null, $val_bc2=null) {
+        if ($this->databaseConnection()) {
+            $bc= trim($bc); $val_bc1=trim($val_bc1); $val_bc2=trim($val_bc2);
+            if ($val_bc1 == null && $val_bc2==null && $bc==null) {
+                return false;
+            }
+            if ($bc != null) {
+                if ($bc=="RMT") {
+                    return true;
+                }
+                $bc_list = array();
+                $bcs = $this->get_bc_list(null, $val_bc1, $val_bc2);
+                if (!empty($bcs)) {
+                    foreach ($bcs as $bcl) {
+                        $bc_list[] = $bcl->bc_code;
+                    }
+                }
+                if (in_array($bc, $bc_list)) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    public function insert_new_bc($contractName, $contractCode, $contractAdmin, $isEligibleSel1, $isEligibleSel2, $incpDate) {
+        if ($this->databaseConnection()) {
+
+            $query = $this->db_connection->prepare("
+                INSERT INTO ".BC_TABLE."(`id`, `contracts`, `bc_code`, `admin`, `eligible_bc1`, `eligible_bc2`, `incp`)
+                VALUES('', :ctr, :bcc, :adm, $isEligibleSel1, $isEligibleSel2, :dt)
+            ");
+            $query->bindParam('ctr', $contractName);
+            $query->bindParam('bcc', $contractCode);
+            $query->bindParam('adm', $contractAdmin);
+            $query->bindParam('dt', $incpDate);
+            if ($query->execute()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function update_bc_eligibility($bc=null, $sel=null, $val=null) {
+        if ($this->databaseConnection()) {
+            $st = '';
+            if ($sel=="tdsel1") {
+                $st = "SET `eligible_bc1`=".$val;
+            } else if ($sel=='tdsel2') {
+                $st = "SET `eligible_bc2`=".$val;
+            }
+
+            $query = $this->db_connection->prepare("
+                UPDATE ".BC_TABLE."
+                $st
+                WHERE `bc_code`= :bc
+            ");
+            $query->bindParam('bc', $bc);
+            if ($query->execute()) {
+                return true;
+            }
         }
         return false;
     }

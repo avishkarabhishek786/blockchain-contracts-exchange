@@ -11,6 +11,11 @@ if (isset($_POST['task'], $_POST['bc1'], $_POST['bc2']) && trim($_POST['task'])=
     $std->error = true;
 
     if (isset($OrderClass)) {
+        $is_sel1_valid= $OrderClass->is_bc_valid($bc1, 1, null);
+        $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
+        if (!$is_sel1_valid || !$is_sel2_valid) {
+            return;
+        }
 
         $data = $OrderClass->tx_data($bc1, $bc2, 1);
         if (!empty($data)) {

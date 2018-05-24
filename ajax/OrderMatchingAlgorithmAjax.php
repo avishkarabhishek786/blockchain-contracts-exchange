@@ -10,7 +10,13 @@ if (isset($_POST['task']) && trim($_POST['task'])=='run_OrderMatchingAlgorithm')
 
         if ($slc1 == "" || $slc2 == "") {return;}
 
-        $refresh_orders = $OrderClass->OrderMatchingService($_POST['sel1'], $_POST['sel2']);
+        $is_sel1_valid= $OrderClass->is_bc_valid($slc1, 1, null);
+        $is_sel2_valid= $OrderClass->is_bc_valid($slc2, null, 1);
+        if (!$is_sel1_valid || !$is_sel2_valid) {
+            return;
+        }
+
+        $refresh_orders = $OrderClass->OrderMatchingService($slc1, $slc2);
 
         /*If user is logged in user send him messages, if any*/
         if (checkLoginStatus()) {

@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Abhishek Kumar Sinha
- * Date: 5/16/2018
- * Time: 5:56 PM
- */
+
 require_once '../includes/imp_files.php';
 
 if (!checkLoginStatus()) {
@@ -22,7 +17,9 @@ if (isset($_POST['job']) && trim($_POST['job']) == "update-user-bc-balance") {
         $std->mesg = array();
         $std->error = true;
 
-        if ($bc2==""||$bc2==null) {
+        $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
+
+        if ($bc2==""||$bc2==null || !$is_sel2_valid) {
             $mess = "Please choose a Blockchain contract from second dropdown.";
             $std->error = true;
             $std->mesg[] = $mess;

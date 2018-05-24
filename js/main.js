@@ -4,7 +4,7 @@
 $(document).ready(function() {
     var sel1 = $('#sel-bc-1').val();
     var sel2 = $('#sel-bc-2').val();
-    //load_fresh_table_data(sel1, sel2);
+    load_fresh_table_data(sel1, sel2);
     run_OrderMatchingAlgorithm();
     tradeList();
     MyOrders();
@@ -13,6 +13,7 @@ $(document).ready(function() {
     user_wallet();
     current_prices();
     load_messages();
+    checkLoginStatusJS();
 });
 
 $(document).on('click', '#is_mkt', function() {
@@ -27,7 +28,7 @@ var my_date_format = function(input){
     return (date + " " + time);
 };
 
-$(document).on('click', '#ex-sub', function() {
+$(document).on('click', '.process', function() {
 
     var btn = $(this);
     var sel1 = $('#sel-bc-1').val();
@@ -42,6 +43,14 @@ $(document).on('click', '#ex-sub', function() {
     user_wallet();
     current_prices(sel2);
 });
+
+function checkLoginStatusJS() {
+
+    $(document).on('click drop', '.fb_log_in', function (e) {
+        e.preventDefault();
+        $('#LoginModel').modal('toggle');
+    });
+}
 
 function displayNotice(msg, _type) {
     var v = '<li>'+msg+'</li>';
@@ -73,6 +82,7 @@ function place_order(sel1, sel2, pr, qty, bs_rad, is_mkt, btn) {
             console.log(xhr.responseText);
         },
         success: function(data) {
+            console.log(data);
             btn.prop( "disabled", false);
             var IS_JSON = true;
             try {
@@ -88,8 +98,8 @@ function place_order(sel1, sel2, pr, qty, bs_rad, is_mkt, btn) {
                     displayNotice($msg, "failure");
                 } else if(d.order != null && d.order.error == true && d.order.message != null) {
                     displayNotice(d.order.message, "failure");
-                } else if(d.user == '') {
-                    displayNotice('There was a problem in identifying the user.', "failure");
+                } else if(d.msg != '' && d.msg != 'undefined') {
+                    displayNotice(d.msg, "failure");
                 } else {
                     $('#empty_msg').hide();
                     var trade = "";
@@ -123,6 +133,7 @@ function run_all() {
     MyOrders();
     MyTransactions();
     load_messages();
+    user_wallet();
 }
 
 function check_new_orders() {
@@ -158,7 +169,6 @@ function isArray(what) {
 }
 
 function load_fresh_table_data(bc1, bc2) {
-
     $.ajax({
         method:'post',
         url:'ajax/refresh_table.php',
@@ -167,11 +177,8 @@ function load_fresh_table_data(bc1, bc2) {
             console.log(xhr.responseText);
         },
         success: function(data) {
-            console.log(data);
             if(data !== '') {
                 var d = jQuery.parseJSON(data);
-                console.log(d);
-                //get_my_balance();
 
                 var t = '';
                 if(isArray(d.buys) && d.buys.length !== 0) {
@@ -179,11 +186,13 @@ function load_fresh_table_data(bc1, bc2) {
                  t += '';
                  t += '<tr id="'+d.buys[j].order_id+'">';
                  t += '<td> '+d.buys[j].name+'</td>';
-                 t += '<td> '+d.buys[j].price+'</td>';
+                 t += '<td>'+d.buys[j].bc1+'</td>';
                  t += '<td>'+d.buys[j].quantity+'</td>';
+                 t += '<td> '+d.buys[j].bc2+'</td>';
+                 t += '<td> '+d.buys[j].price+'</td>';
                  t += '</tr>';
                  }
-                 }
+                }
                  $('#bd-buy').html(t);
 
                  var v = '';
@@ -192,8 +201,10 @@ function load_fresh_table_data(bc1, bc2) {
                  v += '';
                  v += '<tr id="'+d.sells[k].order_id+'">';
                  v += '<td>'+d.sells[k].name+'</td>';
-                 v += '<td> '+d.sells[k].price+'</td>';
+                 v += '<td>'+d.sells[k].bc1+'</td>';
                  v += '<td>'+d.sells[k].quantity+'</td>';
+                 v += '<td>'+d.sells[k].bc2+'</td>';
+                 v += '<td> '+d.sells[k].price+'</td>';
                  v += '</tr>';
                  }
                  }
@@ -389,7 +400,12 @@ function MyTransactions() {
 function sel_bc_stats(bc1, bc2) {
     var bc_one = $('#bc-one');
     var bc_two = $('#bc-two');
-    bc_one.text(bc1);
+    if(bc_one.text()=="") {
+        bc_one.html('Select BC1'+ " &#8660; ");
+    }else {
+        bc_one.html(bc1+ " &#8660; ");
+    }
+
     bc_two.text(bc2);
     $.ajax({
         method:'post',
@@ -409,8 +425,8 @@ function sel_bc_stats(bc1, bc2) {
             }
 
             if(IS_JSON) {
-                if((d.data.length != 0) && (bc_one.val()!='') && (bc_two.val()!='')) {
-                    bc_one.text(d.data.a_bc);
+                if((typeof(d.data) != "undefined" && d.data !== null && d.error!=true) && (bc_one.text()!='') && (bc_two.text()!='')) {
+                    bc_one.html(d.data.a_bc + " &#8660; ");
                     bc_two.text(d.data.b_bc);
                     $('#bc-two-pr').text(d.data.b_amount);
                 }
@@ -429,7 +445,6 @@ function user_wallet() {
             console.log(xhr.responseText);
         },
         success: function (data) {
-
             var IS_JSON = true;
             try {
                 var d = jQuery.parseJSON(data);
@@ -483,19 +498,19 @@ function current_prices(bc2) {
 
             if (IS_JSON) {
                 if (d.error == false) {
-                    if (isArray(d.bc) && d.bc.length != 0) {
+                    if (typeof(d.cp) != "undefined" && d.cp !== null) {
                         var t = '';
-                        var w = '';
-                        for (var k = 0; k <= d.bc.length - 1; k++) {
-                            w = d.bc[k].b_bc;
+                        for (var k = 0; k <= d.cp.BC.length - 1; k++) {
                             t += '<tr>';
-                            t += '<td>'+ d.bc[k].a_bc+'</td>';
-                            t += '<td>'+ d.bc[k].a_amount+'</td>';
-                            t += '<td><span class="text-success">22%</span></td>';
+                            t += '<td>'+ d.cp.BC[k]+'</td>';
+                            t += '<td>'+ d.cp.BC2VAL[k]+'</td>';
+                            t += '<td>'+ d.cp.RMTVAL[k]+'</td>';
+                            t += '<td>'+ d.cp.USDVAL[k]+'</td>';
                             t += '</tr>';
                         }
-                        ltpbc2.html('('+w+')');
+
                         bccp.html(t);
+                        ltpbc2.text('('+bc2+')');
                     }
                 }
             }
@@ -574,3 +589,7 @@ $(document).on('click', '.del_order', function (e) {
     });
 });
 
+/*Get length of Object in Jquery*/
+function getLengthOfObject(obj) {
+    return Object.getOwnPropertyNames(obj).length;
+}

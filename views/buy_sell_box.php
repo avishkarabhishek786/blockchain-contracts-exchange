@@ -5,8 +5,10 @@
             <thead>
             <tr>
                 <th>Buyer</th>
-                <th>Price</th>
+                <th>BC1</th>
                 <th>Quantity</th>
+                <th>BC2</th>
+                <th>Price</th>
             </tr>
             </thead>
             <tbody id="bd-buy"></tbody>
@@ -21,8 +23,10 @@
             <thead>
             <tr>
                 <th>Buyer</th>
-                <th>Price</th>
+                <th>BC1</th>
                 <th>Quantity</th>
+                <th>BC2</th>
+                <th>Price</th>
             </tr>
             </thead>
             <tbody id="bd-sell"></tbody>

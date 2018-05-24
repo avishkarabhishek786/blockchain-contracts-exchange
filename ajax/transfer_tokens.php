@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/imp_files.php';
 
-if (!checkLoginStatus()) {
+if (!checkLoginStatus() || !isset($OrderClass)) {
     return false;
 }
 
@@ -24,7 +24,9 @@ if (isset($_POST['job']) && trim($_POST['job']) == "transfer_tokens") {
             return false;
         }
 
-        if ($bc2==""||$bc2==null) {
+        $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
+
+        if ($bc2==""||$bc2==null || !$is_sel2_valid) {
             $mess = "Please choose a Blockchain contract from second dropdown.";
             $std->error = true;
             $std->mesg[] = $mess;
@@ -65,7 +67,7 @@ if (isset($_POST['job']) && trim($_POST['job']) == "transfer_tokens") {
         }
 
         // Check order in sell table
-        $user_active_orders = $OrderClass->get_active_order_of_user($from, $bc2, TOP_SELLS_TABLE);
+        $user_active_orders = $OrderClass->get_active_buy_order_of_user($from, $bc2, TOP_SELLS_TABLE);
         $frozen_bal_sells = 0;
         $allowed_bid_amount = $customer_bal_fr;
         if (is_array($user_active_orders) && !empty($user_active_orders)) {

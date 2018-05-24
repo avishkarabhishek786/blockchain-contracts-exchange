@@ -19,134 +19,211 @@
         }
 
         $traders = $OrderClass->UserBalanceList('', 1);
+        $BClist = $OrderClass->get_bc_list();
 
          ?>
-
-            <div class="container mt--2">
-                <h2>Actions table</h2>
-                <div class="mt--2 mb--2 p--1">
+<div class="container" style="margin-top:30px; margin-bottom:30px;">
+    <div class="row">
+        <!--Transfer tokens-->
+        <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
+            <h2>Transfer tokens</h2>
+            <div class="mt--2 mb--2 p--1">
+                <div class="form-inline">
                     <div class="form-group">
-                        <label class="sr-only" for="cus_id">User Id</label>
-                        <input type="number" class="form-control" name="cus_id" id="cus_id" placeholder="User Id">
+                        <label class="sr-only" for="cust_id-fr">From (User Id)</label>
+                        <input type="number" class="form-control" name="cust_id-fr" id="cust_id-fr" placeholder="From (User Id)">
                     </div>
                     <div class="form-group">
-                        <label class="sr-only" for="bal">Input Balance</label>
-                        <input type="text" class="form-control" name="bal" id="bc-bal-updt" placeholder="Input Balance">
+                        <label class="sr-only" for="cust_id_to">To (User Id)</label>
+                        <input type="number" class="form-control" name="cust_id_to" id="cust_id_to" placeholder="To (User Id)">
                     </div>
-                    <input type="submit" class="btn-sm mt--1" id="bc_tr_btn" value="Update balance">
-                </div>
-
-                <input type="text" id="search_traders" onkeyup="search_traders()" placeholder="Search for names..">
-
-                <div class="table-responsive" id="traders_table">
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>User</th>
-                            <th>RMT</th>
-                            <th>Cash</th>
-                            <th>Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        $action_class = null;
-                        $btn_name = null;
-                        $i=1;
-                        if (is_array($traders) && !empty($traders)) {
-                            foreach ($traders as $index=>$trader) {
-                                if ($trader->is_active) {
-                                    $action_class = 'off';
-                                    $btn_name = "Deactivate Account";
-                                } else {
-                                    $action_class = 'on';
-                                    $btn_name = "Activate Account";
-                                }
-                        ?>
-                                <tr>
-                                    <td><?=$trader->UID?></td>
-                                    <td><a href="http://facebook.com/<?=$trader->FACEBOOK_ID?>" target="_blank"><?=$trader->name?></a></td>
-                                    <td><?=$trader->bc?></td>
-                                    <td><?=$trader->balance?></td>
-                                    <?php if($i!=$trader->UID) {continue;} ?>
-                                    <td><input type="button" class="btn-ra" id="<?=$action_class.'_'.$trader->UID?>" value="<?=$btn_name?>"></td>
-                                </tr>
-                            <?php $i++;
-                            }
-                        }
-                        ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-
-            <!--Transfer tokens-->
-            <div class="container mt--2">
-                <h2>Transfer tokens</h2>
-                <div class="mt--2 mb--2 p--1">
-                    <div class="form-inline">
-                        <div class="form-group">
-                            <label class="sr-only" for="cust_id-fr">From (User Id)</label>
-                            <input type="number" class="form-control" name="cust_id-fr" id="cust_id-fr" placeholder="From (User Id)">
-                        </div>
-                        <div class="form-group">
-                            <label class="sr-only" for="cust_id_to">To (User Id)</label>
-                            <input type="number" class="form-control" name="cust_id_to" id="cust_id_to" placeholder="To (User Id)">
-                        </div>
-                        <div class="form-group">
-                            <label class="sr-only" for="toke_amt">Amount of BC units to transfer </label>
-                            <input type="text" class="form-control" name="toke_amt" id="toke_amt" placeholder="Amount of BC units to transfer">
-                        </div>
-                        <input type="submit" class="btn-sm mt--1" id="btn-tr" value="Transfer tokens">
+                    <div class="form-group">
+                        <label class="sr-only" for="toke_amt">Amount of BC units to transfer </label>
+                        <input type="text" class="form-control" name="toke_amt" id="toke_amt" placeholder="Amount of BC units to transfer">
                     </div>
-                </div>
-            </div>
-
-            <!--History-->
-            
-            <div class="container mt--2">
-            <div class="table-responsive">
-                <div class="table-responsive">
-            <?php $list_bal_changes = $OrderClass->list_root_bal_changes();  ?>
-                    <h2>Update History</h2>
-                    <input type="text" id="audit_input" onkeyup="search_audit_table()" placeholder="Search for names or id..">
-                    <table class="table" id="audit_table">
-                        <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>Investor's Id</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Previous Balance</th>
-                            <th>Updated Balance</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($list_bal_changes as $ch): ?>
-                        <tr>
-                            <td><?=$ch->BalStatusHistoryId?></td>
-                            <td><?=$ch->user_id?></td>
-                            <td><?=$ch->name?></td>
-                            <td><?=$ch->email?></td>
-                            <td><?=$ch->bal_prev?></td>
-                            <td><?=$ch->bal_now?></td>
-                            <td><?=$ch->type?></td>
-                            <td><?=$ch->UpdateDate?></td>
-                        </tr>
-                        <?php  endforeach; ?>
-                        </tbody>
-                    </table>
+                    <input type="submit" class="btn-sm mt--1" id="btn-tr" value="Transfer tokens">
                 </div>
             </div>
         </div>
-            
-        <?php
-    }
-?>
+        </div>
+    <div class="row">
+        <!--Insert New Blockchain Contract-->
+        <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
+            <div>
+                <h2>Blockchain Contracts Actions</h2>
+                <div class="form-group">
+                    <label for="ctrn">Contract Name:</label>
+                    <input type="text" class="form-control" id="ctrn">
+                </div>
+                <div class="form-group">
+                    <label for="bcc">BC Code (Not more than 8 characters):</label>
+                    <input type="text" class="form-control" id="bcc">
+                </div>
+                <div class="form-group">
+                    <label for="bcadm">Admin:</label>
+                    <input type="text" class="form-control" id="bcadm">
+                </div>
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" id="eli_sel1"> Is Eligible for Select 1
+                    </label>
+                </div>
+                <div class="form-group form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" id="eli_sel2"> Is Eligible for Select 2
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="bcicpdt">Date of Incorporation:</label>
+                    <input type="date" class="form-control" id="bcicpdt">
+                </div>
+                <button type="submit" class="btn btn-primary" id="btn_bcinst">Submit</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!--Update BC-->
+        <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
+            <div>
+                <h2>Blockchain Contracts List</h2>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                          <tr>
+                            <th>Contracts</th>
+                            <th>BC Code</th>
+                            <th>BC Admin</th>
+                            <th>Select BC 1</th>
+                            <th>Select BC 2</th>
+                            <th>Incorporated on</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php if(is_array($BClist) && !empty($BClist)):
+                              foreach ($BClist as $bcl):
+                          ?>
+                                  <tr>
+                                      <td><?=$bcl->contracts?></td>
+                                      <td><?=$bcl->bc_code?></td>
+                                      <td><?=$bcl->admin?></td>
+                                      <td>
+                                          <button id="tdsel1_<?=$bcl->bc_code?>_<?=$bcl->eligible_bc1?>" class="btn btn-light btn_updt_bc"><?php echo $tt = ($bcl->eligible_bc1==1)?'On':'Off'?></button>
+                                      </td>
+                                      <td>
+                                          <button id="tdsel2_<?=$bcl->bc_code?>_<?=$bcl->eligible_bc2?>" class="btn btn-light btn_updt_bc"><?php echo $tt = ($bcl->eligible_bc2==1)?'On':'Off'?></button>
+                                      </td>
+                                      <td><?=$bcl->incp?></td>
+                                  </tr>
+                          <?php endforeach; endif; ?>
+                        </tbody>
+                      </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!--User Actions-->
+        <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
+            <h2>Actions table</h2>
+            <div class="mt--2 mb--2 p--1">
+                <div class="form-group">
+                    <label class="sr-only" for="cus_id">User Id</label>
+                    <input type="number" class="form-control" name="cus_id" id="cus_id" placeholder="User Id">
+                </div>
+                <div class="form-group">
+                    <label class="sr-only" for="bal">Input Balance</label>
+                    <input type="text" class="form-control" name="bal" id="bc-bal-updt" placeholder="Input Balance">
+                </div>
+                <input type="submit" class="btn-sm mt--1" id="bc_tr_btn" value="Update balance">
+            </div>
+
+            <input type="text" id="search_traders" onkeyup="search_traders()" placeholder="Search for names..">
+
+            <div class="table-responsive" id="traders_table">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>User</th>
+                        <th>RMT</th>
+                        <th>Cash</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    $action_class = null;
+                    $btn_name = null;
+                    $i=1;
+                    if (is_array($traders) && !empty($traders)) {
+                        foreach ($traders as $index=>$trader) {
+                            if ($trader->is_active) {
+                                $action_class = 'off';
+                                $btn_name = "Deactivate Account";
+                            } else {
+                                $action_class = 'on';
+                                $btn_name = "Activate Account";
+                            }
+                    ?>
+                            <tr>
+                                <td><?=$trader->UID?></td>
+                                <td><a href="http://facebook.com/<?=$trader->FACEBOOK_ID?>" target="_blank"><?=$trader->name?></a></td>
+                                <td><?=$trader->bc?></td>
+                                <td><?=$trader->balance?></td>
+                                <?php if($i!=$trader->UID) {continue;} ?>
+                                <td><input type="button" class="btn-ra" id="<?=$action_class.'_'.$trader->UID?>" value="<?=$btn_name?>"></td>
+                            </tr>
+                        <?php $i++;
+                        }
+                    }
+                    ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!--Update History-->
+        <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
+            <div class="table-responsive">
+            <div class="table-responsive">
+        <?php $list_bal_changes = $OrderClass->list_root_bal_changes();  ?>
+                <h2>Update History</h2>
+                <input type="text" id="audit_input" onkeyup="search_audit_table()" placeholder="Search for names or id..">
+                <table class="table" id="audit_table">
+                    <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Investor's Id</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Previous Balance</th>
+                        <th>Updated Balance</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($list_bal_changes as $ch): ?>
+                    <tr>
+                        <td><?=$ch->BalStatusHistoryId?></td>
+                        <td><?=$ch->user_id?></td>
+                        <td><?=$ch->name?></td>
+                        <td><?=$ch->email?></td>
+                        <td><?=$ch->bal_prev?></td>
+                        <td><?=$ch->bal_now?></td>
+                        <td><?=$ch->type?></td>
+                        <td><?=$ch->UpdateDate?></td>
+                    </tr>
+                    <?php  endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+<?php } ?>
 
 <!--footer-->
 <?php include_once 'includes/footer.php'; ?>
@@ -375,8 +452,89 @@
                 }
             }
             });
+    });
+
+    /*Insert New BC*/
+    $(document).on('click', '#btn_bcinst', function() {
+        var btn = this;
+        var ct_name = $('#ctrn').val();
+        var bccode = $('#bcc').val();
+        var bcadmin = $('#bcadm').val();
+        var ch1 = $('#eli_sel1').is(":checked");
+        var ch2 = $('#eli_sel2').is(":checked");
+        var incpdt = $('#bcicpdt').val();
+        var job = 'inset_bc';
+
+        $(btn).val('Please wait...').prop( "disabled", true );
+
+        $.ajax({
+            method: 'post',
+            url: 'ajax/rm_root.php',
+            data: {job:job, ct_name:ct_name, bccode:bccode, bcadmin:bcadmin, ch1:ch1, ch2:ch2, incpdt:incpdt},
+            error: function(xhr, status, error) {
+                console.log(xhr, status, error);
+            },
+            success: function(data) {
+                console.log(data);
+                $(btn).val('Submit').prop( "disabled", false );
+                if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
+                    var IS_JSON = true;
+                    try {
+                        var d = jQuery.parseJSON(data);
+                    }
+                    catch(err) {
+                        IS_JSON = false;
+                    }
+
+                    if(IS_JSON) {
+                        console.log(d);
+                    }
+                }
+            }
+        });
 
     });
+
+    /*Update BC*/
+    $(document).on('click', '.btn_updt_bc', function() {
+
+        var btn = this;
+        var _id = $(btn).attr('id');
+        var updt_job = 'update_sel_bc';
+        $(btn).prop( "disabled", true);
+        $.ajax({
+            method: 'post',
+            url: 'ajax/rm_root.php',
+            data: {updt_job:updt_job, _id:_id},
+            error: function(xhr, status, error) {
+                console.log(xhr, status, error);
+            },
+            success: function(data) {
+                var IS_JSON = true;
+                try {
+                    var d = jQuery.parseJSON(data);
+                }
+                catch(err) {
+                    IS_JSON = false;
+                }
+
+                if(IS_JSON) {
+                    if (d.res==true) {
+                        var vv = (d.val==1)?'On':'Off';
+                        $(btn).attr('id', d.new_id).text(vv).prop( "disabled", false );
+                    }
+                } else {
+                    $.notify({
+                        title: "<strong>Update failed!:</strong> ",
+                        message: "Failed to update the state."
+                    },{
+                        type: 'danger'
+                    });
+                }
+            }
+        });
+
+    })
     
 
 </script>

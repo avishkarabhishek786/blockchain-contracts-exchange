@@ -45,3 +45,10 @@ if (class_exists('Users') && class_exists('Orders') && class_exists('SendMail'))
     //$ApiClass = new Api();
     $MailClass = new SendMail();
 }
+/*Fetch current RMT price*/
+if (!isset($_SESSION['RMT_TODAYS_PRICE'])) {
+    $rmt = rmt_price_today();
+    if (is_object($rmt) && isset($rmt->B_Amount) && $rmt->B_Amount>0 ) {
+        $_SESSION['RMT_TODAYS_PRICE'] = (float)$rmt->B_Amount;
+    }
+}

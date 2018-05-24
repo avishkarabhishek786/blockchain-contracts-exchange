@@ -2,13 +2,13 @@
     <div class="row">
         <div class="col-xs-12 col-lg-3">
             <div class="row lays">
-                <div class="col-6"><h5 class="text-justify"><span id="bc-one"></span>/<span id="bc-two"></span></h5></div>
-                <div class="col-3">
+                <div class="col-8"><h5 class="text-justify"><span id="bc-one"></span>  <span id="bc-two"></span></h5></div>
+                <div class="col-4">
                     <h5 class="text-justify" id="bc-two-pr"></h5>
                 </div>
-                <div class="col-3">
-                    <h5 class="text-justify text-success">22.3%</h5>
-                </div>
+                <!--<div class="col-3">
+                    <!--<h5 class="text-justify text-success">22.3%</h5>
+                </div>-->
             </div>
             <div class="row lays">
                 <div class="col">
@@ -43,7 +43,7 @@
                         </label>
                     </div>
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary" id="ex-sub" name="ex-sub">Submit</button>
+                        <button type="submit" class="btn btn-primary <?=$action_class_buy_sell?>" id="ex-sub" name="ex-sub">Submit</button>
                     </div>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                         </div>
                     </div>
                 </div>
-                <?php } ?>
+
                 <div class="card lays">
                     <div class="card-header" id="headingTwo">
                         <h5 class="mb-0">
@@ -122,15 +122,16 @@
                         </div>
                     </div>
                 </div>
+                <?php } ?>
             </div>
 
             <div class="row">
-                <div class="col-xs-12 col-md-8 ">
+                <div class="col-xs-12 col-md-6">
                     <div class="lays">
                         <?php include_once 'traders_list.php'; ?>
                     </div>
                 </div>
-                <div class="col-xs-12 col-md-4">
+                <div class="col-xs-12 col-md-6">
                     <div class="lays">
                         <?php include_once "ltp.php";?>
                     </div>

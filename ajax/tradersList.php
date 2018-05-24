@@ -18,6 +18,11 @@ if (isset($_POST['task'], $_POST['bc2']) && trim($_POST['task'])=='loadTradersLi
 
     if (isset($OrderClass)) {
 
+        $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
+        if (!$is_sel2_valid) {
+            return;
+        }
+
         $tradersList = $OrderClass->UserBalanceList($bc2, 1);
         if (is_array($tradersList) && !empty($tradersList)) {
             $std->traders_list = $tradersList;

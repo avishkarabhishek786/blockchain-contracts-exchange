@@ -1,11 +1,11 @@
 <?php
 
 require_once '../includes/imp_files.php';
-//echo $_POST['bc2'];
-if (isset($_POST['task'], $_POST['bc1'], $_POST['bc2']) && trim($_POST['task'])=='refresh') {
 
-    $bc1 = $_POST['bc1'];
-    $bc2 = $_POST['bc2'];
+if (isset($_POST['task']) && trim($_POST['task'])=='refresh') {
+
+    $bc1 = trim($_POST['bc1']);
+    $bc2 = trim($_POST['bc2']);
 
     $std = new stdClass();
     $std->buys = null;
@@ -14,6 +14,19 @@ if (isset($_POST['task'], $_POST['bc1'], $_POST['bc2']) && trim($_POST['task'])=
     $std->error = true;
 
     if (isset($OrderClass, $UserClass)) {
+        if (isset($bc1) && trim($bc1)!=="") {
+            $is_sel1_valid= $OrderClass->is_bc_valid($bc1, 1, null);
+            if (!$is_sel1_valid) {
+                return;
+            }
+        } else {$bc1=null;}
+
+        if (isset($bc2) && trim($bc2)!=="") {
+            $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
+            if (!$is_sel2_valid) {
+                return;
+            }
+        } else {$bc2=null;}
 
         $buy_list = $OrderClass->get_top_buy_sell_list(TOP_BUYS_TABLE, $bc1, $bc2, $asc_desc='DESC');  // buy
         $sell_list = $OrderClass->get_top_buy_sell_list(TOP_SELLS_TABLE, $bc1, $bc2, $asc_desc='ASC');  // sell
