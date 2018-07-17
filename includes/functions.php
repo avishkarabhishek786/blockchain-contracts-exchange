@@ -126,3 +126,194 @@ function rmt_price_today() {
 function bc_to_usd($bc_rmt_price, $current_rmt_price_in_usd) {
     return round(($bc_rmt_price * $current_rmt_price_in_usd), 2);
 }
+
+function user_rmt_bal($uid=0) {
+    $bit_price = null;
+    if (!is_int($uid)) {
+        return false;
+    }
+
+    try {
+        $url = "https://www.ranchimall.net/exchange/api/token_ratio/$uid/rmt";
+
+        $json = file_get_contents($url);
+        $data = json_decode($json, TRUE);
+
+        $user_rmt_bal= $data["user"];
+    } catch(Exception $e) {
+        $user_rmt_bal = null;
+    }
+
+    return (float) $user_rmt_bal;
+}
+
+function get_tx_hash($addr=null) {
+    $root_trans_hash = null;
+    try {
+        $string = "https://testnet.florincoin.info/ext/getaddress/$addr";
+        $json = file_get_contents($string);
+        $data = json_decode($json, TRUE);
+        foreach ($data["last_txs"] as $cur) {
+            if ($cur["type"] == "vout") {
+                $root_trans_hash = $cur["addresses"];
+                break;
+            }
+        }
+    } catch (Exception $e) {
+        return null;
+    }
+    return $root_trans_hash;
+}
+
+function get_block_hash($root_trans_hash) {
+    $root_block_hash = null;
+    try {
+        $string = "https://testnet.florincoin.info/api/getrawtransaction?txid=".$root_trans_hash."&decrypt=1";
+        $json = file_get_contents($string);
+        $data = json_decode($json, TRUE);
+        $root_block_hash = $data["blockhash"];
+    } catch (Exception $e) {
+        return null;
+    }
+    return $root_block_hash;
+}
+
+function get_block_index($root_block_hash) {
+    $root_block_index = null;
+    try {
+        $string = "https://testnet.florincoin.info/api/getblock?hash=".$root_block_hash;
+        $json = file_get_contents($string);
+        $root_block_index = json_decode($json, TRUE);
+        //$root_block_index = $data["height"];
+    } catch (Exception $e) {
+        return null;
+    }
+    return $root_block_index;
+}
+
+function get_current_block_count() {
+    $current_block_index = null;
+    try {
+        $string = "https://testnet.florincoin.info/api/getblockcount";
+        $json = file_get_contents($string);
+        $data = json_decode($json, TRUE);
+        $current_block_index = $data;
+    } catch (Exception $e) {
+        return null;
+    }
+    return $current_block_index;
+}
+
+function get_current_blockhash($block_index=null) {
+    $blockhash = null;
+    try {
+        $string = "https://testnet.florincoin.info/api/getblockhash?index=".$block_index;
+        $blockhash = file_get_contents($string);
+    } catch (Exception $e) {
+        return null;
+    }
+    return $blockhash;
+}
+
+function listcheck($element=null) {
+    try {
+        $element = (float) $element;
+        if (!is_float($element)) {
+            throw new Exception("Invalid float value");
+        }
+    } catch(Exception $e) {
+        echo 'Message: ' .$e->getMessage();
+        return 1;
+    }
+    return 0;
+}
+
+function dothemagic($blockindex=null) {
+    if ($blockindex==null) {
+        return;
+    }
+    $blockindex = (int) $blockindex;
+    $blockhash = get_current_blockhash($blockindex);
+    $blockinfo = get_block_index($blockhash);
+
+    foreach ($blockinfo["tx"] as $transaction) {
+        $string = "https://testnet.florincoin.info/api/getrawtransaction?txid=".$transaction."&decrypt=1";
+        $json = file_get_contents($string);
+        $data = json_decode($json, TRUE);
+        $text = substr($data["floData"], 5);
+        $comment_list = explode("#", $text);
+
+        if ($comment_list[0]=='ranchimalltest') {
+            echo "<p>I just saw ranchimalltest</p>";
+            $commentTransferAmount = $comment_list[1];
+
+            if (strlen($commentTransferAmount)==0) {
+                echo "Value for token transfer has not been specified";
+                continue;
+            }
+
+            $returnval = listcheck($commentTransferAmount);
+			if ($returnval == 1) {
+                continue;
+            }
+            $commentTransferAmount_arr = [];
+            array_push($commentTransferAmount_arr, $commentTransferAmount);
+            $commentTransferAmount =$commentTransferAmount_arr;
+
+            $inputlist = [];
+			$querylist = [];
+
+            foreach ($data["vin"] as $obj) {
+                array_push($querylist, [$obj["txid"], $obj["vout"]]);
+            }
+
+            $inputval = 0;
+			$inputadd = '';
+
+            foreach ($querylist as $query) {
+                $string = "https://testnet.florincoin.info/api/getrawtransaction?txid=".$query[0]."&decrypt=1";
+                $json = file_get_contents($string);
+                $content = json_decode($json, TRUE);
+
+                foreach ($content["vout"] as $objec) {
+                    if ($objec["n"] == $query[1]) {
+                        $inputadd = $objec["scriptPubKey"]["addresses"][0];
+						$inputval = $inputval + $objec["value"];
+                    }
+                }
+            }
+
+            array_push($inputlist, [$inputadd, $inputval]);
+
+            if (count($inputlist) > 1) {
+                print("Program has detected more than one input address ");
+                print("This transaction will be discarded");
+                continue;
+            }
+
+            $outputlist = [];
+            foreach ($data["vout"] as $obj) {
+                if ($obj["scriptPubKey"]["type"] == "pubkeyhash") {
+                    if ($inputlist[0][0] == $obj["scriptPubKey"]["addresses"][0]) {
+                        continue;
+                    }
+                    $temp = [];
+                    array_push($temp, $obj["scriptPubKey"]["addresses"][0]);
+                    array_push($temp, $obj["value"]);
+                    array_push($outputlist, $temp);
+                }
+            }
+
+            print("Input List");
+            echo "<br>";
+			print_r($inputlist);
+            echo "<br>";
+			print("Output List");
+			print_r($outputlist);
+            echo "<br>";
+
+
+        }
+    }
+
+}

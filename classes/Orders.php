@@ -1368,7 +1368,7 @@ class Orders extends Users {
                 $extraQuerry1 = "AND ".CREDITS_TABLE.".bc = :bc1";
                 $extraQuerry2 = "ORDER BY ".CREDITS_TABLE.".balance DESC";
             } else {
-                $extraQuerry2 = "ORDER BY ".USERS_TABLE.".name ASC";
+                $extraQuerry2 = "ORDER BY ".USERS_TABLE.".id ASC";
             }
 
             $query = $this->db_connection->prepare("

@@ -297,6 +297,27 @@ class Users {
         return false;
     }
 
+    public function get_user_by_email($em) {
+
+        if ($this->databaseConnection()) {
+
+            $query = $this->db_connection->prepare("SELECT * FROM ".USERS_TABLE." WHERE email = :email AND is_active = 1 LIMIT 1");
+            $query->bindParam('email', $em);
+
+            if ($query->execute()) {
+                $row_count = $query->rowCount();
+                if ($row_count == 1) {
+                    return $user_details = $query->fetchObject();
+                }
+                return false;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
+
 
 
 }

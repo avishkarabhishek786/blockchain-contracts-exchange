@@ -2,7 +2,7 @@
 
 require_once '../includes/imp_files.php';
 
-if (!checkLoginStatus()) {
+if (!checkLoginStatus() || !isset($OrderClass, $UserClass)) {
     return false;
 }
 
@@ -10,17 +10,15 @@ if (isset($_POST['job']) && trim($_POST['job']) == "update-user-bc-balance") {
 
     if (isset($_POST['bc_bal_updt'], $_POST['cus_id'], $_POST['_bc2'])) {
         $cus_id = (int)$_POST['cus_id'];
-        $bc2 = trim($_POST['_bc2']);
+        $bc2 = $_POST['_bc2'];
         $balance = number_format((float)$_POST['bc_bal_updt'], 10);
 
         $std = new stdClass();
         $std->mesg = array();
         $std->error = true;
 
-        $is_sel2_valid= $OrderClass->is_bc_valid($bc2, null, 1);
-
-        if ($bc2==""||$bc2==null || !$is_sel2_valid) {
-            $mess = "Please choose a Blockchain contract from second dropdown.";
+        if ($bc2==""||$bc2==null || !is_array($bc2) || empty($bc2)) {
+            $mess = "Please choose a Blockchain contract from the dropdown menu.";
             $std->error = true;
             $std->mesg[] = $mess;
             echo json_encode($std);
@@ -44,14 +42,6 @@ if (isset($_POST['job']) && trim($_POST['job']) == "update-user-bc-balance") {
             return false;
         }
 
-        if (!isset($OrderClass, $UserClass)) {
-            $mess = "System Error!";
-            $std->error = true;
-            $std->mesg[] = $mess;
-            echo json_encode($std);
-            return false;
-        }
-
         $update_bal = null;
 
         /*Restrict decimal places while updating balance*/
@@ -63,31 +53,44 @@ if (isset($_POST['job']) && trim($_POST['job']) == "update-user-bc-balance") {
             return false;
         }
 
-        //Prev balance of user
-        $bal_prev = (float) $OrderClass->check_customer_balance($bc2, $cus_id)->balance;
+        foreach ($bc2 as $b2) {
+            $is_sel2_valid= $OrderClass->is_bc_valid($b2, null, 1);
+            if (!$is_sel2_valid) {
+                $mess = "Unknown Blockchain contract.";
+                $std->error = true;
+                $std->mesg[] = $mess;
+                echo json_encode($std);
+                continue;
+            }
 
-        $update_bal = $OrderClass->update_user_balance($bc2, $balance, $cus_id);
+            //Prev balance of user
+            $bal_prev = (float) $OrderClass->check_customer_balance($b2, $cus_id)->balance;
 
-        if (!$update_bal) {
-            $mess = "Failed to update balance.";
-            $std->error = true;
-            $std->mesg[] = $mess;
-            echo json_encode($std);
-            return false;
-        } else if($update_bal) {
-            // Record this change
-            $OrderClass->record_root_bal_update($cus_id, $bal_prev, $balance, $bc2);
-            $mess = "Successfully updated balance!";
-            $std->error = false;
-            $std->mesg[] = $mess;
-            echo json_encode($std);
-            return false;
-        } else {
-            $mess = "Something went wrong. Failed to update balance!";
-            $std->error = true;
-            $std->mesg[] = $mess;
-            echo json_encode($std);
-            return false;
+            $update_bal = $OrderClass->update_user_balance($b2, $balance, $cus_id);
+
+            if (!$update_bal) {
+                $mess = "Failed to update $b2 balance.";
+                $std->error = true;
+                $std->mesg[] = $mess;
+                echo json_encode($std);
+                //return false;
+            } else if($update_bal) {
+                // Record this change
+                $OrderClass->record_root_bal_update($cus_id, $bal_prev, $balance, $b2);
+                $mess = "Successfully updated balance!";
+                $std->error = false;
+                $std->mesg[] = $mess;
+                echo json_encode($std);
+                //return false;
+            } else {
+                $mess = "Something went wrong. Failed to update $b2 balance!";
+                $std->error = true;
+                $std->mesg[] = $mess;
+                echo json_encode($std);
+                //return false;
+            }
         }
+
     }
+    return;
 }

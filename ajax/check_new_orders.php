@@ -11,7 +11,7 @@ if (!checkLoginStatus()) {
     return false;
 }
 
-$last_trade_date = $_SESSION['last_trade_date'];
+$last_trade_date = isset($_SESSION['last_trade_date'])?$_SESSION['last_trade_date']:'';
 
 $lod = $OrderClass->get_last_order_date($last_trade_date);
 

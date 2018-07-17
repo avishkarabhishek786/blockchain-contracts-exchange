@@ -26,7 +26,7 @@
     <div class="row">
         <!--Transfer tokens-->
         <div class="col-xs-12 col-md-12 col-lg-12 mb-50">
-            <h2>Transfer tokens</h2>
+            <h2>Transfer tokens (Please select a BC from second select box above)</h2>
             <div class="mt--2 mb--2 p--1">
                 <div class="form-inline">
                     <div class="form-group">
@@ -134,6 +134,14 @@
                     <label class="sr-only" for="bal">Input Balance</label>
                     <input type="text" class="form-control" name="bal" id="bc-bal-updt" placeholder="Input Balance">
                 </div>
+                <select class="custom-select" id="bc_menue_sel" multiple>
+                    <option value="" selected>Open this multiple select menu</option>
+                    <option value="RMT">RMT</option>
+        <?php if(is_array($BClist) && !empty($BClist)):
+            foreach ($BClist as $bcl): ?>
+                    <option value="<?=$bcl->bc_code; ?>"><?=$bcl->contracts?></option>
+        <?php endforeach; endif;  ?>
+                </select>
                 <input type="submit" class="btn-sm mt--1" id="bc_tr_btn" value="Update balance">
             </div>
 
@@ -145,8 +153,8 @@
                     <tr>
                         <th>Id</th>
                         <th>User</th>
-                        <th>RMT</th>
-                        <th>Cash</th>
+                        <th>BC</th>
+                        <th>Balance</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -281,20 +289,20 @@
     $(document).on('click', '#bc_tr_btn', function() {
         var bc_bal_updt = $('#bc-bal-updt').val();
         var cus_id = $('#cus_id').val();
-        var sel_bc2 = $('#sel-bc-2').val();
+        var sel_bc2 = $('#bc_menue_sel').val();
         var job = 'update-user-bc-balance';
         var btn = this;
 
         if (sel_bc2=="") {
             $.notify({
                 title: "<strong>Alert!: </strong> ",
-                message: "Please choose a contract from second dropdown at top."
+                message: "Please choose a contract from the dropdown menu."
             },{
                 type: 'warning'
             });
             return false;
         }
-        $(btn).val('Please wait....').prop( "disabled", true );
+        $(btn).prop( "disabled", true );
 
         $.ajax({
             method: 'post',
@@ -304,7 +312,8 @@
                 console.log(xhr, status, error);
             },
             success: function(data) {
-                $(btn).val('Transfer '+sel_bc2).prop( "disabled", false );
+                console.log(data);
+                $(btn).prop( "disabled", false );
                 if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
                     var IS_JSON = true;
                     try {

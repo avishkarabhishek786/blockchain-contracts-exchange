@@ -18,7 +18,7 @@ if (isset($UserClass)) {
         $validate_user = $UserClass->is_fb_registered($fb_id);
 
         if($validate_user == "" || $validate_user == false) {
-            redirect_to('index.php');
+            redirect_to('index.php?msg=Unknown User');
         }
     endif;
 
@@ -50,7 +50,7 @@ if(checkLoginStatus()) {
 </head>
 <body>
 
-<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+<nav class="navbar navbar-dark bg-dark">
     <a class="navbar-brand" href="#">Ranchi Mall Blockchain Contract</a>
 
     <div class="sel-div float-right">
@@ -73,32 +73,38 @@ if(checkLoginStatus()) {
             <?php endif; ?>
         </select>
     </div>
-
-    <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
-        <span class="navbar-toggler-icon"></span>
-    </button>
 </nav>
 
-<div class="nav-scroller bg-white box-shadow">
-    <nav class="nav nav-underline">
-        <?php if($user_logged_in) { ?>
-        <a class="nav-link active" href="#"><?php echo "Welcome ". (isset($_SESSION['full_name']) ? $_SESSION['full_name']:"")?></a>
-        <?php } ?>
-        <!--<a class="nav-link" href="#">
-            Investors
-            <span class="badge badge-pill bg-light align-text-bottom">127</span>
-        </a>-->
-        <a class="nav-link" href="https://www.ranchimall.net/exchange">Buy RMT</a>
+<nav class="navbar navbar-expand-md navbar-light bg-white box-shadow">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <?php if($user_logged_in) { ?>
-            <a class="nav-link" href="logout.php">Log Out</a>
-        <?php } elseif(isset($loginUrl)) {?>
-            <a href="<?=$loginUrl?>" role="button" class="nav-link" name="fb_login">
-                <div class="btn--facebook ">
-                    Login with Facebook
-                </div>
-            </a>
-        <?php } ?>
-    </nav>
-</div>
+    <div class="collapse navbar-collapse" id="navbarsExample04">
+        <ul class="navbar-nav mr-auto">
+            <?php if($user_logged_in) { ?>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#"><?php echo "Welcome ". (isset($_SESSION['full_name']) ? $_SESSION['full_name']:"")?></a>
+                </li>
 
+            <?php } ?>
+            <li class="nav-item">
+                <a class="nav-link" href="https://www.ranchimall.net/exchange">Buy RMT</a>
+            </li>
+
+            <?php if($user_logged_in) { ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="logout.php">Log Out</a>
+                </li>
+            <?php } elseif(isset($loginUrl)) {?>
+                <li class="nav-item">
+                    <a href="<?=$loginUrl?>" role="button" class="nav-link" name="fb_login">
+                        <div class="btn--facebook ">
+                            Login with Facebook
+                        </div>
+                    </a>
+                </li>
+            <?php } ?>
+        </ul>
+    </div>
+</nav>

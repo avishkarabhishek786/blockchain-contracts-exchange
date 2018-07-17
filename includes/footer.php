@@ -52,3 +52,4 @@
 </script>
 </body>
 </html>
+<?php if ($user_logged_in) {include_once VIEWS_DIR.'/req_user_info.php';} ?>
