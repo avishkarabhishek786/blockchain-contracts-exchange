@@ -5,10 +5,10 @@
  * Date: 17-Oct-16
  * Time: 9:22 AM
  */
-
 class Users {
 
     protected $db_connection = null;
+    protected $floconn = null;
     private $user_name = null;
     private $email = null;
     private $name = null;
@@ -16,8 +16,7 @@ class Users {
     private $user_is_logged_in = false;
     private $errors = array();
 
-    public function databaseConnection()
-    {
+    public function databaseConnection() {
         // if connection already exists
         if ($this->db_connection != null) {
             return true;
@@ -29,6 +28,21 @@ class Users {
                 $this->errors[] = MESSAGE_DATABASE_ERROR . $e->getMessage();
             }
         }
+        return false;
+    }
+
+    public function rpcConnection() {
+        $floconn = null;
+        if ($this->floconn != null) {
+            return true;
+        } else {
+            try {
+                $this->floconn = new \Nbobtc\Http\Client('http://'.RPC_USERNAME.':'.RPC_PASSWORD.'@'.RPC_SERVER.':'.RPC_PORT);
+                return true;
+            } catch (Exception $flocoin) {
+                $this->errors[] = $flocoin->error;
+            }
+        }  
         return false;
     }
 

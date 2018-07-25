@@ -145,6 +145,7 @@ function check_new_orders() {
             console.log(xhr, status, error);
         },
         success: function(data) {
+            console.log(data);
             if ($.trim(data) != '' && $.trim(data) != undefined && $.trim(data) != null) {
                 run_all();
             }
@@ -233,7 +234,7 @@ function run_OrderMatchingAlgorithm() {
             console.log(xhr.responseText);
         },
         success: function(data) {
-
+            console.log(data);
             load_fresh_table_data(sel1, sel2);
 
             var IS_JSON = true;

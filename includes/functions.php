@@ -184,7 +184,6 @@ function get_block_index($root_block_hash) {
         $string = "https://testnet.florincoin.info/api/getblock?hash=".$root_block_hash;
         $json = file_get_contents($string);
         $root_block_index = json_decode($json, TRUE);
-        //$root_block_index = $data["height"];
     } catch (Exception $e) {
         return null;
     }
@@ -229,9 +228,12 @@ function listcheck($element=null) {
 }
 
 function dothemagic($blockindex=null) {
-    if ($blockindex==null) {
+    if ($blockindex==null || !class_exists('Viv')) {
         return;
     }
+
+    $VivClass = new Viv();
+
     $blockindex = (int) $blockindex;
     $blockhash = get_current_blockhash($blockindex);
     $blockinfo = get_block_index($blockhash);
@@ -243,8 +245,8 @@ function dothemagic($blockindex=null) {
         $text = substr($data["floData"], 5);
         $comment_list = explode("#", $text);
 
-        if ($comment_list[0]=='ranchimalltest') {
-            echo "<p>I just saw ranchimalltest</p>";
+        if ($comment_list[0]=='ranchimall-rebc') {
+            echo "<p>I just saw ranchimall-rebc</p>";
             $commentTransferAmount = $comment_list[1];
 
             if (strlen($commentTransferAmount)==0) {
@@ -312,8 +314,122 @@ function dothemagic($blockindex=null) {
 			print_r($outputlist);
             echo "<br>";
 
+            if (count($inputlist)>1) {
+                print("Program has detected more than one input address ");
+				print("This transaction will be discarded");
+				continue;
+            }
 
+            $availableTokens = $VivClass->getAvailableTokens($inputlist[0][0]);
+
+            if ($availableTokens==null) {
+                echo "The input address doesn't exist in our database";
+                continue;
+            } elseif($availableTokens < array_sum($commentTransferAmount)) {
+                print("The transfer amount passed in the comments is more than the user owns\nThis transaction will be discarded");
+				continue;
+            } elseif ($availableTokens >= array_sum($commentTransferAmount)) {
+                if (count($commentTransferAmount) !== count($outputlist)) {
+                    print("The parameters in the comments aren't enough");
+					print("This transaction will be discarded");
+					continue;
+                }
+
+                for ($i=0; $i<count($commentTransferAmount); $i++) {
+                    $table = $VivClass->getTransactiontable($inputlist[0][0]);
+
+                    $pidlst = [];
+					$checksum = 0;
+
+                    foreach ($table as $row) {
+                        if ($checksum >= $commentTransferAmount[$i]) {
+							break;
+                        }
+                        array_push($pidlst, $row->id);
+						$checksum = $checksum + $row->transferBalance;
+                    }
+                    $balance = $commentTransferAmount[$i];
+                    $opbalance = $VivClass->getAvailableTokens($outputlist[$i][0]);
+
+                    if ($opbalance==null) {
+                        $opbalance = 0;
+                    }
+
+                    $ipbalance = $VivClass->getAvailableTokens($inputlist[0][0]);
+
+                    print('$opbalance: '.$opbalance);
+                    echo '<br>';
+                    print('$ipbalance: '.$ipbalance);
+
+                    foreach ($pidlst as $pid) {
+                        $temp = $VivClass->getTransferBalanceById($pid);
+
+                        if ($balance <= $temp) {
+                            $VivClass->insertTx($outputlist[$i][0], $pid, $balance);
+                            $bbal = (float) $temp-$balance;
+                            $VivClass->updateTx($bbal, $pid);
+
+                            // transaction logs section
+                            $lastid = $VivClass->getMostRecentId();
+                            $transferDescription = $balance . " tokens transferred to " . $outputlist[$i][0] . " from " . $inputlist[0][0];
+                            $blockchainReference = 'https://testnet.florincoin.info/tx/' . $transaction;
+                            $VivClass->insertLogs($lastid, $transferDescription, $pid, $blockchainReference);
+
+                            $transferDescription = $inputlist[0][0] . " balance UPDATED from " . $temp . " to " . $bbal;
+                            $blockchainReference = 'https://testnet.florincoin.info/tx/' .$transaction;
+                            $VivClass->insertLogs($pid, $transferDescription, null, $blockchainReference);
+
+                            //webpage table section
+                            $VivClass->insertWebInfo($transferDescription, $blockchainReference);
+
+                            $transferDescription = "UPDATE " . $outputlist[$i][0] . " balance from " . $opbalance . " to " . $opbalance . $commentTransferAmount[$i];
+                            $VivClass->insertWebInfo($transferDescription, $blockchainReference);
+
+                            $transferDescription = "UPDATE " . $inputlist[0][0] . " balance from " . $ipbalance . " to " . $ipbalance - $commentTransferAmount[$i];
+                            $VivClass->insertWebInfo($transferDescription, $blockchainReference);
+
+                            $balance = 0;
+                        } elseif($balance > $temp) {
+
+                            $VivClass->insertTx($outputlist[$i][0], $pid, $temp);
+                            $VivClass->updateTx(0, $pid);
+
+                            //transaction logs section
+                            $lastid = $VivClass->getMostRecentId();
+                            $transferDescription = $temp . " tokens transferred to " . $outputlist[$i][0] . " from " . $inputlist[0][0];
+                            $blockchainReference = 'https://testnet.florincoin.info/tx/' . $transaction;
+							$VivClass->insertLogs($lastid, $transferDescription, $pid, $blockchainReference);
+
+                            $transferDescription = " balance UPDATED from " . $temp . " to 0";
+                            $blockchainReference = 'https://testnet.florincoin.info/tx/' . $transaction;
+                            $VivClass->insertLogs($pid, $transferDescription, null, $blockchainReference);
+
+                            $balance = $balance - $temp;
+
+                        }
+                    }
+                }
+            }
         }
     }
+    return true;
+}
 
+function update() {
+    if (!class_exists('Viv')) {
+        return false;
+    }
+    $VivClass = new Viv();
+    $current_index = get_current_block_count();
+    $lastblockscanned = $VivClass->getLastBlockScanned();
+    $blockindex = $lastblockscanned+1;
+    if ($blockindex <= $current_index) {
+        if (dothemagic($blockindex)==true) {
+            $VivClass->updateExtra(1, $blockindex);
+            echo 'Last block scanned: '.$blockindex;
+        } else {
+            return false;
+        }
+    }
+    return true;
 }

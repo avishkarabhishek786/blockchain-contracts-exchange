@@ -1,4 +1,4 @@
-<?php
+<?php 
 if(!session_id()) {
     session_start();
 }
@@ -85,5 +85,5 @@ if (isset($accessToken)) {
 
 } else {
     // replace your website URL same as added in the developers.facebook.com/apps e.g. if you used http instead of https and you used non-www version or www version of your website then you must add the same here
-    $loginUrl = $helper->getLoginUrl('http://localhost/files/Bitcoin_Projects/bc_exchange/fbconfig.php', $permissions);
+    $loginUrl = $helper->getLoginUrl('http://localhost:9000/files/bc_exchange/fbconfig.php', $permissions);
 }

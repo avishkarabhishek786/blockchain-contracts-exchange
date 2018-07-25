@@ -1,4 +1,5 @@
 <?php
+
 class Orders extends Users {
 
     protected $db_connection = null;
@@ -373,6 +374,12 @@ class Orders extends Users {
                                 $new_buyer_balance_bc1 = $buyer_balance_bc1 + $available->quantity; // btc
                                 $new_buyer_balance_bc2 = $buyer_balance_bc2 - $cost_of_total_supply; // traditional or cash
 
+                                $flo_tx = $this->sendFloComment($bc1, $buyer_id, $new_buyer_balance_bc1, $new_buyer_balance_bc2, $bc2, $seller_id, $new_seller_balance_bc1, $new_seller_balance_bc2);
+
+                                if ($flo_tx==null) {
+                                    return false;
+                                }
+
                                 // subtract the debit access (customers balance of $ or BTC)
                                 $this->update_user_balance($assetType = $bc1, $balance = $new_buyer_balance_bc1, $buyer_id);
 
@@ -448,6 +455,12 @@ class Orders extends Users {
                                 $new_buyer_balance_bc1 = $buyer_balance_bc1 + $available->quantity; // btc
                                 $new_buyer_balance_bc2 = $buyer_balance_bc2 - $cost_of_total_supply; // traditional or cash
 
+                                $flo_tx = $this->sendFloComment($bc1, $buyer_id, $new_buyer_balance_bc1, $new_buyer_balance_bc2, $bc2, $seller_id, $new_seller_balance_bc1, $new_seller_balance_bc2);
+
+                                if ($flo_tx==null) {
+                                    return false;
+                                }
+
                                 // subtract the debit access (customers balance of $ or BTC)
                                 $this->update_user_balance($assetType = $bc1, $balance = $new_buyer_balance_bc1, $user_id = $buyer_id);
 
@@ -521,6 +534,12 @@ class Orders extends Users {
                                 $new_buyer_balance_bc1 = $buyer_balance_bc1 + $this->demanded_qty; // btc
                                 $new_buyer_balance_bc2 = $buyer_balance_bc2 - $cost_of_total_supply; // traditional or cash
 
+                                $flo_tx = $this->sendFloComment($bc1, $buyer_id, $new_buyer_balance_bc1, $new_buyer_balance_bc2, $bc2, $seller_id, $new_seller_balance_bc1, $new_seller_balance_bc2);
+
+                                if ($flo_tx==null) {
+                                    return false;
+                                }
+
                                 // subtract the debit access (customers balance of $ or BTC)
                                 $this->update_user_balance($assetType = $bc1, $balance = $new_buyer_balance_bc1, $user_id = $buyer_id);
 
@@ -567,7 +586,8 @@ class Orders extends Users {
                         }
 
                         // Record the transaction
-                        $this->record_transaction($buyer_id,$buy_order_id, $buy_amount, $bc1, $seller_id, $available->order_id, $available->price, $bc2, $trade_qty);
+                        $this->record_transaction($buyer_id,$buy_order_id, $buy_amount, $bc1, $seller_id, $available->order_id, $available->price, $bc2, $trade_qty, $flo_tx);
+                        
                     } else {
                         return false;
                     }
@@ -674,6 +694,12 @@ class Orders extends Users {
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $available->quantity; // traditional or cash
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
 
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
+
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '0', $OfferAssetTypeId, $WantAssetTypeId, $available->quantity, $available->price);
 
                                     $buy_order_id = 0;
@@ -738,6 +764,12 @@ class Orders extends Users {
                                     $new_seller_bit_balance = $seller_balance_bc1 - $qty;
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $available->quantity; // traditional or cash
+
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
 
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '0', $OfferAssetTypeId, $WantAssetTypeId, $available->quantity, $available->price);
 
@@ -804,6 +836,12 @@ class Orders extends Users {
                                     $new_seller_bit_balance = $seller_balance_bc1 - $qty;
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $qty; // traditional or cash
+
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
 
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '0', $OfferAssetTypeId, $WantAssetTypeId, $qty, $available->price);
 
@@ -922,6 +960,12 @@ class Orders extends Users {
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $available->quantity; // btc
 
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
+
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '1', $OfferAssetTypeId, $WantAssetTypeId, $available->quantity, $available->price);
 
                                     $sell_order_id = 0;
@@ -985,6 +1029,12 @@ class Orders extends Users {
                                     $new_seller_bit_balance = $seller_balance_bc1 - $available->quantity; // deduct the btc sold
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $available->quantity; // traditional or cash
+
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
 
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '1', $OfferAssetTypeId, $WantAssetTypeId, $available->quantity, $available->price);
 
@@ -1051,6 +1101,12 @@ class Orders extends Users {
                                     $new_seller_bit_balance = $seller_balance_bc1 - $qty; // deduct the btc sold
                                     $new_buyer_cash_balance = $buyer_balance_bc2 - $cost_of_total_supply; // traditional
                                     $new_buyer_bit_balance = $buyer_balance_bc1 + $qty; // traditional or cash
+
+                                    $flo_tx = $this->sendFloComment($WantAssetTypeId, $buyer_id, $new_buyer_bit_balance, $new_buyer_cash_balance, $WantAssetTypeId, $seller_id, $new_seller_bit_balance, $new_seller_cash_balance);
+
+                                    if ($flo_tx==null) {
+                                        return false;
+                                    }
 
                                     $insert_market_order = $this->insert_market_order($_SESSION['user_id'], $orderTypeId = '1', $OfferAssetTypeId, $WantAssetTypeId, $qty, $available->price);
 
@@ -1139,12 +1195,12 @@ class Orders extends Users {
         return false;
     }
 
-    private function record_transaction($buyer, $buy_order_id, $buy_amount, $buy_bc, $seller, $sell_order_id, $sell_amount, $sell_bc, $trade_qty) {
+    private function record_transaction($buyer, $buy_order_id, $buy_amount, $buy_bc, $seller, $sell_order_id, $sell_amount, $sell_bc, $trade_qty, $flo_tx=null) {
         if ($this->databaseConnection()) {
             $now = $this->time_now();
             $query = $this->db_connection->prepare("
-            INSERT INTO ".TX_TABLE."(`txid`, `a_buyer`, `a_order_id`, `a_amount`, `a_bc`, `b_seller`, `b_order_id`, `b_amount`, `b_bc`, `qty_traded`, `insert_dt`, `update_dt`)
-            VALUES ('', :buyer,:buy_order_id, :buy_amount, :buy_bc, :seller, :sell_order_id, :sell_amount, :sell_bc, :trade_qty, '$now', NULL)
+            INSERT INTO ".TX_TABLE."(`txid`, `a_buyer`, `a_order_id`, `a_amount`, `a_bc`, `b_seller`, `b_order_id`, `b_amount`, `b_bc`, `qty_traded`, `flo_tx`, `insert_dt`, `update_dt`)
+            VALUES ('', :buyer,:buy_order_id, :buy_amount, :buy_bc, :seller, :sell_order_id, :sell_amount, :sell_bc, :trade_qty, :flo_tx, '$now', NULL)
             ");
             $query->bindParam("buyer", $buyer);
             $query->bindParam("buy_order_id", $buy_order_id);
@@ -1155,6 +1211,7 @@ class Orders extends Users {
             $query->bindParam("sell_amount", $sell_amount);
             $query->bindParam("sell_bc", $sell_bc);
             $query->bindParam("trade_qty", $trade_qty);
+            $query->bindParam("flo_tx", $flo_tx);
             if($query->execute()) {
                 return true;
             }
@@ -1729,5 +1786,41 @@ class Orders extends Users {
         return false;
     }
 
+    private function sendFloComment($bc1, $buyer_id, $new_buyer_balance_bc1, $new_buyer_balance_bc2, $bc2, $seller_id, $new_seller_balance_bc1, $new_seller_balance_bc2) {
+        if ($this->rpcConnection()) {
+            $tx = null;
+
+            if ((strlen($bc1)>0)&&(strlen($buyer_id)>0)&&(strlen($new_buyer_balance_bc1)>0)&&(strlen($new_buyer_balance_bc2)>0)&&(strlen($bc2)>0)&&(strlen($seller_id)>0)&&(strlen($new_seller_balance_bc1)>0)&&(strlen($new_seller_balance_bc2)>0)) {
+                
+                $flo = new stdClass();
+                $flo->buy_bc = $bc1;
+                $flo->buyer_id = $buyer_id;
+                $flo->buyer_balance_bc1 = $new_buyer_balance_bc1;
+                $flo->buyer_balance_bc2 = $new_buyer_balance_bc2;
+                $flo->sell_bc = $bc2;
+                $flo->seller_id = $seller_id;
+                $flo->seller_balance_bc1 = $new_seller_balance_bc1; 
+                $flo->seller_balance_bc2 = $new_seller_balance_bc2;  
+
+                $floJSON = json_encode($flo);
+                $flo_comment = "ranchimall-bc==".$floJSON;
+
+                $toAddress = FLO_TX_ADDR;
+                $flo = FLO_TX_SEND_AMOUNT;
+
+                if ((strlen($toAddress)>0) && ($flo > 0)) {
+                    try {
+
+                        $command = new \Nbobtc\Command\Command('sendtoaddress', array($toAddress, $flo, "REBC", "", false, false, 1, 'UNSET', $flo_comment));
+                        $response = $this->floconn->sendCommand($command);
+                        $tx = $response->getBody()->getContents();
+                    } catch (Exception $e) {
+                       $tx = null;
+                    }   
+                }
+            }
+            return $tx;  
+        }
+    }
 
 }

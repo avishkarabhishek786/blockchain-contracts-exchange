@@ -1,6 +1,7 @@
 <?php
 
 require_once '../includes/imp_files.php';
+require ROOT_PATH . '/vendor/autoload.php';
 
 if (isset($_POST['task']) && trim($_POST['task'])=='run_OrderMatchingAlgorithm') {
 

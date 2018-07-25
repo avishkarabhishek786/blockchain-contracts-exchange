@@ -1,8 +1,8 @@
 <?php
 
 // Turn off error reporting
-//error_reporting(0);
-//@ini_set('display_errors', 0);
+error_reporting(0);
+@ini_set('display_errors', 0);
 
 $bc_list1 = array();
 $bc_list2= array();
